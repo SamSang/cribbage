@@ -139,13 +139,10 @@ def seq_card(card: Card):
 
 def consecutive_cards(cards: list) -> bool:
     """returns true if all cards in the list are consecutive"""
-    # TODO this is all busted
     is_consecutive = False
-    sequence = (card.seq for card in cards)
+    sequence = [card.seq for card in cards]
     lowest_card = min(sequence)
-    correct_sequence = range(lowest_card, len(cards))
-    #print(list(sequence))
-    #print(set(correct_sequence))
+    correct_sequence = range(lowest_card, lowest_card + len(cards))
     if list(sequence) == list(correct_sequence):
         is_consecutive = True
     return is_consecutive
@@ -180,25 +177,23 @@ def score(hand, cut: Card = None) -> None:
             # one point for each unique set of sequential cards
             run = list(subset)
             if len(subset) >= 3 and consecutive_cards(run):
-                print('sequential!')
-                print(run)
                 sequences.append(run)
     # reconcile overlapping sets
-    # TODO something about this logic hates n > 3
-    print(sequences)
     unique_sequences = list()
     for sequence in sequences:
+        unique = True
         for i in range(len(unique_sequences)):
-            print('compare', sequence, 'to', unique_sequences[i])
-            if set(sequence).issubset(unique_sequences[i]): # run is inside this sequence
+            #print('compare', sequence, 'to', unique_sequences[i])
+            if set(sequence).issuperset(unique_sequences[i]): # run is inside this sequence
                 # add the difference between the two to the existing sequence
-                unique_sequences[1].add(set(sequence).difference(unique_sequences[1]))
-                print('changed')
+                #print('add', set(sequence), 'to', unique_sequences[i])
+                values_to_add = list(set(sequence).difference(unique_sequences[i]))
+                for value_to_add in values_to_add:
+                    unique_sequences[i].add(value_to_add)
             if not unique_sequences[i].issubset(set(sequence)):
-                unique_sequences.append(set(sequence))
-                print('added')
-        if len(unique_sequences) == 0:
-            print('add first')
+                unique = False
+        if unique:
+            #print('add sequence', set(sequence))
             unique_sequences.append(set(sequence))
     # tally points from sequential sets
     unique_sequences_set = set(frozenset(s) for s in unique_sequences)
@@ -237,18 +232,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-"""
-failure of runs
-[8H, 1S, AH, 9H, JH]
-sequential!
-[8H, 9H, 1S]
-count 'em
-sequential!
-[9H, 1S, JH]
-count 'em
-sequential!
-[8H, 9H, 1S, JH]
-count 'em
-10
-"""
