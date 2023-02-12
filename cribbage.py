@@ -5,14 +5,58 @@ Collection of objects to represent possible cribbage hands
 import random
 from itertools import combinations
 from itertools import permutations
+import unittest
+
+faces = {
+        '10': {
+            'seq': 1,
+            'value': 1,
+            'letter': '1',
+        },
+        'Jack': {
+            'seq': 11,
+            'value': 10,
+            'letter': 'J',
+        },
+        'Queen': {
+            'seq': 12,
+            'value': 10,
+            'letter': 'Q',
+        },
+        'King': {
+            'seq': 13,
+            'value': 10,
+            'letter': 'K',
+        },
+        'Ace': {
+            'seq': 1,
+            'value': 1,
+            'letter': 'A',
+        },
+    }
+
+suits = {
+    'Spade': {
+        'letter': 'S',
+    },
+    'Heart': {
+        'letter': 'H',
+    },
+    'Diamond': {
+        'letter': 'D',
+    },
+    'Club': {
+        'letter': 'C',
+    },
+}
 
 class Card:
-    def __init__(self, card: str, suit: str, seq: int, value: int):
-        self.card = card
+    def __init__(self, rank: str, suit: str, seq: int, value: int):
+        self.rank = rank
         self.suit = suit
         self.seq = seq
         self.value = value
-        self.name = self.card[0] + self.suit[0]
+        self.name = self.rank[0] + self.suit[0]
     def __repr__(self):
         return self.name
 
@@ -25,85 +69,49 @@ def build_deck() -> list:
 
     suits = ['Spade', 'Heart', 'Diamond', 'Club']
 
-    cards = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King']
+    ranks = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King']
 
-    rules = {
-        'Jack': {
-            'seq': 11,
-            'value': 10,
-        },
-        'Queen': {
-            'seq': 12,
-            'value': 10,
-        },
-        'King': {
-            'seq': 13,
-            'value': 10,
-        },
-        'Ace': {
-            'seq': 1,
-            'value': 1,
-        }
-    }
     for suit in suits:
-        for card in cards:
-            try:
-                seq = int(card)
-                value = int(card)
-            except ValueError:
-                seq = rules[card]['seq']
-                value = rules[card]['value']
-            deck.append(Card(card, suit, seq, value))
+        for rank in ranks:
+            card = build_card(rank, suit)
+            deck.append(card)
     return deck
 
-# TODO a helper function to quickly build a hand (for testing)
-def build_card(card_str: str) -> Card:
-    """Make a card object using a two-letter text"""
-    faces = {
-        'A': {
-            'card': 'Ace',
-            'seq': 1,
-            'value': 1
-        },
-        '1': {
-            'card': '10',
-            'seq': 10,
-            'value': 10
-        },
-        'J': {
-            'card': 'Jack',
-            'seq': 11,
-            'value': 10
-        },
-        'Q': {
-            'card': 'Queen',
-            'seq': 12,
-            'value': 10
-        },
-        'K': {
-            'card': 'King',
-            'seq': 13,
-            'value': 10
-        },
-    }
-    suits = {
-        'S': 'Spade',
-        'H': 'Heart',
-        'D': 'Diamond',
-        'C': 'Club'
-    }
-    card_letter = card_str[0]
-    card_suit = card_str[1]
-    suit = suits[card_suit]
-    if card_letter in faces:
-        card = faces[card_letter]['card']
-        seq = faces[card_letter]['seq']
-        value = faces[card_letter]['value']
-    else:
-        card = str(card_letter)
-        seq = int(card_letter)
-        value = int(card_letter)
-    return Card(card, suit, seq, value)
+def build_card(rank: str, suit: str) -> Card:
+    """Make a card from the rank and suit"""
+    try:
+        seq = int(rank)
+        value = int(rank)
+    except ValueError:
+        seq = faces[rank]['seq']
+        value = faces[rank]['value']
+    return Card(rank, suit, seq, value)
+
+def build_letter_function(letter):
+    def get_letter(pair) -> bool:
+        """function to filter a dict by the child key `letter`"""
+        key, value = pair
+        try:
+            if value['letter'] == letter:
+                return True
+        except:
+            return False
+    return get_letter
+
+def card_from_string(card_string) -> Card:
+    """Make a card given the two letter abbreviation"""
+    rank_letter = card_string[0]
+    suit_letter = card_string[1]
+    rank_filter_function = build_letter_function(rank_letter)
+    suit_filter_function = build_letter_function(suit_letter)
+    suit_dict = dict(filter(suit_filter_function, suits.items()))
+    suit = list(suit_dict.keys())[0]
+    try:
+        rank_dict = dict(filter(rank_filter_function, faces.items()))
+        rank = list(rank_dict.keys())[0]
+    except:
+        rank = rank_letter
+    return build_card(rank, suit)
 
 def build_hand() -> list:
     """Build a list of card objects given user input"""
@@ -111,7 +119,7 @@ def build_hand() -> list:
     cards_split = cards_text.split(' ')
     cards = list()
     for card in cards_split:
-        cards.append(build_card(card))
+        cards.append(card_from_string(card))
     return cards
 # TODO organize some test hands (for flush, 4 of a kind, weird runs)
 # TODO build a logger for scoring a hand
@@ -151,8 +159,6 @@ def score(hand, cut: Card = None) -> None:
     """
     Count a cribbage hand
     TODO
-        runs - fix broken issue
-        flush - build a test
         jack in suit, his knobs
         logger
         separate each of the subset analyzers to their own function
@@ -168,7 +174,7 @@ def score(hand, cut: Card = None) -> None:
                 print(subset)
             # two points for each matching card
             if len(subset) == 2:
-                if subset[0].card == subset[1].card:
+                if subset[0].rank == subset[1].rank:
                     print('A pair in there!')
                     score += 2
                     print(subset)
@@ -216,11 +222,76 @@ def score(hand, cut: Card = None) -> None:
     # check if the hand has a jack matching the suit of the card in the cut
     if cut:
         for card in hand:
-            if card.card == 'Jack' and card.suit == cut.suit:
+            if card.rank == 'Jack' and card.suit == cut.suit:
                 print('Jack in the suit!')
                 score += 1
     return score
 
+class TestCribbageScore(unittest.TestCase):
+    '''Test suite for possible hands'''
+
+    def test_zero(self):
+        hand = ['KD', '8C', 'AH', 'QS', '3C']
+        cards = []
+        for card in hand:
+            cards.append(card_from_string(card))
+        self.assertEqual(0, score(cards))
+
+    def test_fifteen(self):
+        hand = ['8H', '7H', 'KS', 'QH', '1H']
+        cards = []
+        for card in hand:
+            cards.append(card_from_string(card))
+        self.assertEqual(2, score(cards))
+
+    def test_pair(self):
+        hand = ['AH', '1D', '1H', '6H', '2C']
+        cards = []
+        for card in hand:
+            cards.append(card_from_string(card))
+        self.assertEqual(2, score(cards))
+
+    def test_tripple(self):
+        hand = ['1S', '1D', '1H', '6H', '2C']
+        cards = []
+        for card in hand:
+            cards.append(card_from_string(card))
+        self.assertEqual(6, score(cards))
+
+    def test_quad(self):
+        hand = ['1S', '1D', '1H', '6H', '1C']
+        cards = []
+        for card in hand:
+            cards.append(card_from_string(card))
+        self.assertEqual(12, score(cards))
+    
+    def test_run_3(self):
+        hand = ['4S', '8D', 'JH', 'QH', 'KC']
+        cards = []
+        for card in hand:
+            cards.append(card_from_string(card))
+        self.assertEqual(3, score(cards))
+    
+    def test_run_4(self):
+        hand = ['7S', '1D', 'JH', 'QH', 'KC']
+        cards = []
+        for card in hand:
+            cards.append(card_from_string(card))
+        self.assertEqual(4, score(cards))
+    
+    def test_run_5(self):
+        hand = ['9S', '1D', 'JH', 'QH', 'KC']
+        cards = []
+        for card in hand:
+            cards.append(card_from_string(card))
+        self.assertEqual(5, score(cards))
+    
+    def test_flush_4(self):
+        hand = ['9S', '1S', 'QS', 'KS']
+        cards = []
+        for card in hand:
+            cards.append(card_from_string(card))
+        self.assertEqual(4, score(cards))
 
 def main():
     deck = build_deck()
