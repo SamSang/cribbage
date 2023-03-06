@@ -121,7 +121,6 @@ def build_hand() -> list:
     for card in cards_split:
         cards.append(card_from_string(card))
     return cards
-# TODO organize some test hands (for flush, 4 of a kind, weird runs)
 # TODO build a logger for scoring a hand
 
 def draw_hand(deck: list, n=5) -> list:
@@ -155,11 +154,26 @@ def consecutive_cards(cards: list) -> bool:
         is_consecutive = True
     return is_consecutive
 
+def check_fifteen(cards) -> int:
+    points = 0
+    if add_cards(cards) == 15:
+        print('15 two!')
+        print(cards)
+        points = 2
+    return points
+
+def check_pair(cards) -> int:
+    points = 0
+    if len(cards) == 2 and cards[0].rank == cards[1].rank:
+        print('A pair in there!')
+        print(cards)
+        points = 2
+    return points
+
 def score(hand, cut: Card = None) -> None:
     """
     Count a cribbage hand
     TODO
-        jack in suit, his knobs
         logger
         separate each of the subset analyzers to their own function
     """
@@ -168,16 +182,9 @@ def score(hand, cut: Card = None) -> None:
     for cards in range(len(hand) + 1):
         for subset in combinations(hand, cards):
             # two points for any combination of cards whose sum is 15
-            if add_cards(subset) == 15:
-                print('15 two!')
-                score += 2
-                print(subset)
+            score += check_fifteen(subset)
             # two points for each matching card
-            if len(subset) == 2:
-                if subset[0].rank == subset[1].rank:
-                    print('A pair in there!')
-                    score += 2
-                    print(subset)
+            score += check_pair(subset)
         # get all consecutive sets
         for subset in permutations(hand, cards):
             # one point for each unique set of sequential cards
@@ -292,6 +299,22 @@ class TestCribbageScore(unittest.TestCase):
         for card in hand:
             cards.append(card_from_string(card))
         self.assertEqual(4, score(cards))
+    
+    def test_flush_5(self):
+        hand = ['9S', '1S', 'QS', 'KS', '6S']
+        cards = []
+        for card in hand:
+            cards.append(card_from_string(card))
+        cut = cards.pop(-1)
+        self.assertEqual(5, score(cards, cut))
+
+    def test_his_knobs(self):
+        hand = ['JC', '8C', 'AH', 'QS', '3C']
+        cards = []
+        for card in hand:
+            cards.append(card_from_string(card))
+        cut = cards.pop(-1)
+        self.assertEqual(1, score(cards, cut))
 
 def main():
     deck = build_deck()
