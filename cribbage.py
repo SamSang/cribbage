@@ -257,84 +257,75 @@ def score(hand: list, cut: Card = None) -> None:
 class TestCribbageScore(unittest.TestCase):
     '''Test suite for possible hands'''
 
-    def test_zero(self):
-        hand = ['KD', '8C', 'AH', 'QS', '3C']
-        cards = []
-        for card in hand:
-            cards.append(card_from_string(card))
-        self.assertEqual(0, score(cards))
+    def setUp(self):
+        self.configs = [
+            {
+                'name': 'zero',
+                'hand': ['KD', '8C', 'AH', 'QS', '3C'],
+                'score': 0,
+            },
+            {
+                'name': 'one fifteen',
+                'hand': ['8H', '7H', 'KS', 'QH', '1H'],
+                'score': 2,
+            },
+            {
+                'name': 'one pair',
+                'hand': ['AH', '1D', '1H', '6H', '2C'],
+                'score': 2,
+            },
+            {
+                'name': 'three of a kind',
+                'hand': ['1S', '1D', '1H', '6H', '2C'],
+                'score': 6,
+            },
+            {
+                'name': 'four of a kind',
+                'hand': ['1S', '1D', '1H', '6H', '1C'],
+                'score': 12,
+            },
+            {
+                'name': 'run of three',
+                'hand': ['4S', '8D', 'JH', 'QH', 'KC'],
+                'score': 3,
+            },
+            {
+                'name': 'run of four',
+                'hand': ['7S', '1D', 'JH', 'QH', 'KC'],
+                'score': 4,
+            },
+            {
+                'name': 'run of five',
+                'hand': ['9S', '1D', 'JH', 'QH', 'KC'],
+                'score': 5,
+            },
+            {
+                'name': 'flush of four',
+                'hand': ['9S', '1S', 'QS', 'KS', '7D'],
+                'score': 4,
+            },
+            {
+                'name': 'flush of five',
+                'hand': ['9S', '1S', 'QS', 'KS', '2S'],
+                'score': 5,
+            },
+            {
+                'name': 'only his knobs',
+                'hand': ['JC', '8C', 'AH', 'QS', '3C'],
+                'score': 1,
+            },
+        ]
 
-    def test_fifteen(self):
-        hand = ['8H', '7H', 'KS', 'QH', '1H']
-        cards = []
-        for card in hand:
-            cards.append(card_from_string(card))
-        self.assertEqual(2, score(cards))
-
-    def test_pair(self):
-        hand = ['AH', '1D', '1H', '6H', '2C']
-        cards = []
-        for card in hand:
-            cards.append(card_from_string(card))
-        self.assertEqual(2, score(cards))
-
-    def test_tripple(self):
-        hand = ['1S', '1D', '1H', '6H', '2C']
-        cards = []
-        for card in hand:
-            cards.append(card_from_string(card))
-        self.assertEqual(6, score(cards))
-
-    def test_quad(self):
-        hand = ['1S', '1D', '1H', '6H', '1C']
-        cards = []
-        for card in hand:
-            cards.append(card_from_string(card))
-        self.assertEqual(12, score(cards))
-    
-    def test_run_3(self):
-        hand = ['4S', '8D', 'JH', 'QH', 'KC']
-        cards = []
-        for card in hand:
-            cards.append(card_from_string(card))
-        self.assertEqual(3, score(cards))
-    
-    def test_run_4(self):
-        hand = ['7S', '1D', 'JH', 'QH', 'KC']
-        cards = []
-        for card in hand:
-            cards.append(card_from_string(card))
-        self.assertEqual(4, score(cards))
-    
-    def test_run_5(self):
-        hand = ['9S', '1D', 'JH', 'QH', 'KC']
-        cards = []
-        for card in hand:
-            cards.append(card_from_string(card))
-        self.assertEqual(5, score(cards))
-    
-    def test_flush_4(self):
-        hand = ['9S', '1S', 'QS', 'KS']
-        cards = []
-        for card in hand:
-            cards.append(card_from_string(card))
-        self.assertEqual(4, score(cards))
-    
-    def test_flush_5(self):
-        hand = ['9S', '1S', 'QS', 'KS', '2S']
-        cards = []
-        for card in hand:
-            cards.append(card_from_string(card))
-        cut = cards.pop(-1)
-        self.assertEqual(5, score(cards, cut))
-
-    def test_his_knobs(self):
-        hand = ['JC', '8C', 'AH', 'QS', '3C']
-        cards = []
-        for card in hand:
-            cards.append(card_from_string(card))
-        cut = cards.pop(-1)
-        self.assertEqual(1, score(cards, cut))
+    def test_hands(self):
+        for config in self.configs:
+            with self.subTest(config['name'], config=config):
+                hand = config['hand']
+                expected_score = config['score']
+                cards = []
+                for card in hand:
+                    cards.append(card_from_string(card))
+                cut = cards.pop(-1)
+                self.assertEqual(expected_score, score(cards, cut))
 
 def main():
     deck = build_deck()
