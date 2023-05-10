@@ -5,6 +5,7 @@ Collection of objects to represent possible cribbage hands
 import random
 from itertools import combinations
 from itertools import permutations
+from logger import logger
 import unittest
 
 faces = {
@@ -161,8 +162,7 @@ def score_fifteen(cards) -> int:
     for count_cards in range(len(cards) + 1):
         for subset in combinations(cards, count_cards):
             if add_cards(subset) == 15:
-                print('15 two!')
-                print(subset)
+                logger.info(f'15 two! {subset}')
                 points += 2
     return points
 
@@ -173,8 +173,7 @@ def score_pair(cards) -> int:
     points = 0
     for subset in combinations(cards, 2):
         if len(subset) == 2 and subset[0].rank == subset[1].rank:
-            print('A pair in there!')
-            print(subset)
+            logger.info(f'A pair in there! {subset}')
             points += 2
     return points
 
@@ -211,7 +210,7 @@ def score_seq(cards) -> int:
     unique_sequences_set = set(frozenset(s) for s in unique_sequences)
     for unique_sequence in unique_sequences_set:
         points += len(unique_sequence)
-        print(list(unique_sequence), 'for', points, 'points')
+        logger.info(f"{list(unique_sequence)} for {points} points")
     return points
 
 def score_flush(hand: list, cut: Card) -> int:
@@ -221,12 +220,12 @@ def score_flush(hand: list, cut: Card) -> int:
     for i in range(len(hand)):
         suits.append(hand[i].suit)
     if len(list(set(suits))) == 1:
-        print('Flush!')
+        logger.info('Flush!')
         points += len(hand)
         # check if we get an extra point for the cut matching the flush
         if cut:
             if cut.suit == suits[0]:
-                print('(including the cut)')
+                logger.info('(including the cut)')
                 points += 1
     return points
 
@@ -235,7 +234,7 @@ def score_cut(hand: list, cut: Card) -> int:
     if cut:
         for card in hand:
             if card.rank == 'Jack' and card.suit == cut.suit:
-                print('Jack in the suit!')
+                logger.info('Jack in the suit!')
                 return 1
     return 0
 
@@ -331,9 +330,8 @@ def main():
     deck = build_deck()
     random.shuffle(deck)
     hand = draw_hand(deck)
-    print(hand)
     points = score(hand)
-    print(points)
+    logger.info(points)
 
 if __name__ == '__main__':
     main()
