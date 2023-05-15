@@ -253,6 +253,108 @@ def score(hand: list, cut: Card = None) -> None:
     score += score_cut(hand, cut)
     return score
 
+def random_index(l: list):
+    """
+    Select one random number in the list's index range
+    """
+    return random.randint(0, len(l) - 1)
+
+def strategy_random(hand: list, n: int) -> tuple:
+    """
+    Randomly select n cards
+    from the hand
+    """
+    toss = []
+    for i in range(int):
+        toss.append(hand.pop(random_index(hand)))
+    return hand, toss
+
+def split_six(hand: list, strategy: str = "random") -> tuple:
+    """
+    Split a hand of six cards into
+    four to hold and the crib
+    """
+    crib = []
+    # don't split a hand that isn't six cards long
+    if len(hand) != 6:
+        return hand, crib
+    # for now, choose two random cards
+    if strategy == "random":
+        split = strategy_random
+    return split(hand)
+
+class Player(object):
+    def __init__(self, hand_strategey: function = strategy_random, pegs_strategey: function = strategy_random):
+        self.points = 0
+        self.hand = []
+        self.seen = [] # cards that have been seen
+        self.hand_strategy = hand_strategey
+        self.pegs_strategy = pegs_strategey
+
+    def see_reshuffle(self):
+        """
+        Reset the cards the player knows they've seen.
+        """
+        self.seen = self.hand # the only cards known are the cards in the hand
+
+    def toss(self):
+        """
+        Decide which cards in hand to put in the crib
+        """
+        n = max(len(self.hand) - 4, 0)
+        self.hand, player_toss = self.hand_strategy(self.hand, n)
+        return player_toss
+
+    def play(self, stack: list = []):
+        """
+        Decide which cards in hand to play on the stack
+        """
+        self.hand, player_play = self.pegs_strategy(self.hand, 1)
+        return player_play
+
+class Hand(object):
+    """
+    Play out one hand
+    For a list of players
+    """
+    def __init__(self, players: list, deck: list, dealer: int):
+        self.players = players
+        self.deck = deck
+        self.cut = Card # cut is a card
+        self.crib = []
+        self.dealer = dealer # index of who is the dealer
+
+    def deal(self, cards: int = 6):
+        for player in self.players:
+            player.hand = draw_hand(self.deck, cards)
+    
+    def cut(self):
+        self.cut = self.deck.pop()
+
+    def throw(self) -> list:
+        """
+        Build the crib
+        """
+        # each player adds 1 or two cards to the crib
+        for player in self.players:
+            toss = player.toss()
+            self.crib += toss
+        # if there are fewer than 4 cards (as in a three-player game),
+        # add enough cards to bring the crib up to 4 cards.
+        if len(self.crib) < 4:
+            self.crib += draw_hand(self.deck, 4 - len(self.crib))
+
+class Game(object):
+    def __init__(self, player_count: int = 2):
+        # add correct number of players
+        self.players = []
+        for i in range(player_count):
+            self.players.append(Player())
+        
+        self.deck = build_deck()
+        random.shuffle(self.deck)
+
+
 class TestCribbageScore(unittest.TestCase):
     '''Test suite for possible hands'''
 
