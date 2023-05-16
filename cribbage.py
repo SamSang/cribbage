@@ -3,6 +3,7 @@ Collection of objects to represent possible cribbage hands
 """
 
 import random
+import typing
 from itertools import combinations
 from itertools import permutations
 
@@ -232,6 +233,34 @@ def score(hand, cut: Card = None) -> None:
                 print('Jack in the suit!')
                 score += 1
     return score
+
+class Player(object):
+    def __init__(self, name = "Player 0") -> None:
+        self.name = name
+        self.score = 0
+        self._hand = typing.List[Card]
+        self._seen = set()
+
+    def see(self, card: Card) -> None:
+        """
+        Add card to list of cards player has seen
+        """
+        self._seen.add(card)
+
+    @property
+    def hand(self):
+        return self._hand
+    
+    @hand.setter
+    def hand(self, value):
+        self._hand = value
+        for card in self._hand:
+            self.see(card)
+
+    @property
+    def seen(self):
+        return list(self._seen)
+
 
 def main():
     deck = build_deck()
