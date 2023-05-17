@@ -291,6 +291,15 @@ class Player(object):
     def seen(self):
         return list(self._seen)
 
+    def reshuffle(self):
+        """
+        Clear memory of cards seen
+        """
+        self._seen = set()
+        for card in self._hand:
+            if isinstance(card, Card):
+                self.see(card)
+
     def toss(self):
         """
         Hold on to four cards, put the rest in the crib

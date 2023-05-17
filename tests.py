@@ -1,6 +1,7 @@
 """
 Tests for the cribbage module
 """
+import typing
 import unittest
 
 import cribbage
@@ -137,6 +138,17 @@ class TestCribbagePlayer(unittest.TestCase):
         player = cribbage.Player()
         player.see(seen[0]) # also tests that seen is instantiated blank
         self.assertEqual(player.seen, seen)
+
+    def test_reshuffle(self):
+        deck = cribbage.build_deck()
+        seen = cribbage.draw_hand(deck, 1)
+
+        player = cribbage.Player()
+        player.see(seen[0])
+
+        player.reshuffle()
+        self.assertEqual(player.hand, typing.List[cribbage.Card])
+        self.assertEqual(len(player.seen), 0)
 
     def test_toss(self):
         # hand_size + (crib_size // player_count) = 4 + (4 // [2, 3, 4])
