@@ -255,9 +255,12 @@ def strategy_random(
     else:
         possible = hand
     # choose n random cards from the possible selections
+    random.shuffle(possible)
     chosen = []
     for i in range(n):
-        chosen.append(hand.pop(len(hand) - i)) # is this too clever or does it work?
+        chosen.append(possible.pop(len(possible) - 1 - i))
+
+    return hand, chosen
 
 class Player(object):
     def __init__(self, name = "Player 0", strategy_hand = strategy_random, strategy_pegs = strategy_random) -> None:
@@ -288,6 +291,14 @@ class Player(object):
     def seen(self):
         return list(self._seen)
 
+    def toss(self):
+        """
+        Hold on to four cards, put the rest in the crib
+        """
+        crib = []
+        n = len(self.hand) - 4
+        self.hand, crib = self.strategy_hand(self.hand, self.seen, [], n)
+        return crib
 
 def main():
     deck = build_deck()

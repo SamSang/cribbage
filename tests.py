@@ -137,3 +137,20 @@ class TestCribbagePlayer(unittest.TestCase):
         player = cribbage.Player()
         player.see(seen[0]) # also tests that seen is instantiated blank
         self.assertEqual(player.seen, seen)
+
+    def test_toss(self):
+        # hand_size + (crib_size // player_count) = 4 + (4 // [2, 3, 4])
+        for n in range(5, 6):
+            with self.subTest(n=n):
+                deck = cribbage.build_deck()
+                hand = cribbage.draw_hand(deck, n)
+
+                player = cribbage.Player()
+                player.hand = hand
+
+                crib = player.toss()
+
+                self.assertEqual(len(player.hand), 4)
+                self.assertEqual(len(crib), n - 4)
+                for card in crib:
+                    self.assertIsInstance(card, cribbage.Card)
