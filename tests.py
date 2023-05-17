@@ -166,3 +166,18 @@ class TestCribbagePlayer(unittest.TestCase):
                 self.assertEqual(len(crib), n - 4)
                 for card in crib:
                     self.assertIsInstance(card, cribbage.Card)
+
+    def test_play(self):
+        hand_size = 1
+
+        deck = cribbage.build_deck()
+        hand = cribbage.draw_hand(deck, hand_size)
+
+        player = cribbage.Player()
+        player.hand = hand
+
+        stack = []
+        stack.append(player.play(stack))
+
+        self.assertEqual(len(stack) , 1)
+        self.assertEqual(len(player.hand) , hand_size - 1)

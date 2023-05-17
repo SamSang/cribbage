@@ -306,8 +306,15 @@ class Player(object):
         """
         crib = []
         n = len(self.hand) - 4
-        self.hand, crib = self.strategy_hand(self.hand, self.seen, [], n)
+        self.hand, crib = self.strategy_hand(hand=self.hand, seen=self.seen, n=n)
         return crib
+
+    def play(self, stack):
+        """
+        Add a card to the stack
+        """
+        self.hand, selection = self.strategy_pegs(self.hand, self.seen, stack)
+        return selection[0]
 
 def main():
     deck = build_deck()
