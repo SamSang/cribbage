@@ -234,12 +234,39 @@ def score(hand, cut: Card = None) -> None:
                 score += 1
     return score
 
+def strategy_random(
+        hand: typing.List[Card],
+        seen: typing.List[Card],
+        stack: typing.List[Card] = None,
+        n = 1
+    ):
+    """
+    Randomly choose a card to play
+    """
+    possible = []
+    if stack:
+        total = 0
+        for card in stack:
+            total += card.value
+        diff = 31 - total
+        for card in hand:
+            if card.value <= diff:
+                possible.append(card)
+    else:
+        possible = hand
+    # choose n random cards from the possible selections
+    chosen = []
+    for i in range(n):
+        chosen.append(hand.pop(len(hand) - i)) # is this too clever or does it work?
+
 class Player(object):
-    def __init__(self, name = "Player 0") -> None:
+    def __init__(self, name = "Player 0", strategy_hand = strategy_random, strategy_pegs = strategy_random) -> None:
         self.name = name
         self.score = 0
         self._hand = typing.List[Card]
         self._seen = set()
+        self.strategy_hand = strategy_hand
+        self.strategy_pegs = strategy_pegs
 
     def see(self, card: Card) -> None:
         """

@@ -5,7 +5,7 @@ import unittest
 
 import cribbage
 
-class TestCribbagecribbageScore(unittest.TestCase):
+class TestCribbageScore(unittest.TestCase):
     '''Test suite for possible hands'''
 
     def test_zero(self):
@@ -86,3 +86,54 @@ class TestCribbagecribbageScore(unittest.TestCase):
             cards.append(cribbage.card_from_string(card))
         cut = cards.pop(-1)
         self.assertEqual(1, cribbage.score(cards, cut))
+
+class TestCribbagePlayer(unittest.TestCase):
+    """Test suite for Player class"""
+
+    def test_attrs(self):
+        """Has all given attributes"""
+        player = cribbage.Player()
+        attributes = {
+            "name": str,
+            "score": int,
+            #"hand": typing.List[object], # can't test this type
+            "seen": list,
+            "_seen": set,
+            "strategy_hand": "function",
+            "strategy_pegs": "function",
+        }
+        for key in attributes:
+            val = getattr(player, key)
+            if attributes[key] == "function":
+                assert callable(val)
+            else:
+                self.assertIsInstance(val, attributes[key])
+
+    def test_name(self):
+        name = "Player 1"
+        player = cribbage.Player(name=name)
+        self.assertEqual(name, player.name)
+
+    def test_score(self):
+        score = 42
+        player = cribbage.Player()
+        player.score += score # score initiates at zero
+        self.assertEqual(score, player.score)
+
+    def test_hand(self):
+        deck = cribbage.build_deck()
+        hand = cribbage.draw_hand(deck, 4)
+
+        player = cribbage.Player()
+        player.hand = hand
+        self.assertEqual(player.hand, hand)
+        # player should also have hand added to seen
+        self.assertCountEqual(player.seen, hand) # order differs
+
+    def test_see(self):
+        deck = cribbage.build_deck()
+        seen = cribbage.draw_hand(deck, 1)
+
+        player = cribbage.Player()
+        player.see(seen[0]) # also tests that seen is instantiated blank
+        self.assertEqual(player.seen, seen)
