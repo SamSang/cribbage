@@ -6,7 +6,6 @@ import unittest
 
 import cribbage
 
-@unittest.SkipTest
 class TestCribbageScore(unittest.TestCase):
     '''Test suite for possible hands'''
 
@@ -74,7 +73,7 @@ class TestCribbageScore(unittest.TestCase):
         self.assertEqual(4, cribbage.score(cards))
     
     def test_flush_5(self):
-        hand = ['9S', '1S', 'QS', 'KS', '6S']
+        hand = ['9S', '1S', 'QS', 'KS', '7S']
         cards = []
         for card in hand:
             cards.append(cribbage.card_from_string(card))

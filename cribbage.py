@@ -178,7 +178,7 @@ def score_pair(cards) -> int:
             points += 2
     return points
 
-def score(hand, cut: Card = None) -> int:
+def score_seq(cards) -> int:
     """
     Score when a the ranks of cards in a set are in sequence
     """
