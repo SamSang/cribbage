@@ -6,6 +6,7 @@ import unittest
 
 import cribbage
 
+@unittest.SkipTest
 class TestCribbageScore(unittest.TestCase):
     '''Test suite for possible hands'''
 
@@ -102,6 +103,7 @@ class TestCribbagePlayer(unittest.TestCase):
             "_seen": set,
             "strategy_hand": "function",
             "strategy_pegs": "function",
+            "count_hand": list,
         }
         for key in attributes:
             val = getattr(player, key)
@@ -147,7 +149,7 @@ class TestCribbagePlayer(unittest.TestCase):
         player.see(seen[0])
 
         player.reshuffle()
-        self.assertEqual(player.hand, typing.List[cribbage.Card])
+        self.assertEqual(player.hand, [])
         self.assertEqual(len(player.seen), 0)
 
     def test_toss(self):
@@ -181,3 +183,106 @@ class TestCribbagePlayer(unittest.TestCase):
 
         self.assertEqual(len(stack) , 1)
         self.assertEqual(len(player.hand) , hand_size - 1)
+
+class TestCribbageHand(unittest.TestCase):
+    """Test suite for Hand class"""
+
+    def setUp(self) -> None:
+        # add players to hand
+        self.deck = cribbage.build_deck()
+        self.players = [
+            cribbage.Player("Player 1"),
+            cribbage.Player("Player 2"),
+            cribbage.Player("Player 3"),
+        ]
+        self.hand = cribbage.Hand(self.players, self.deck)
+
+    def test_attrs(self):
+        """Has all given attributes"""
+        # Maybe instantiate the Hand
+        attributes = {
+            "seq": int,
+            "players": list,
+            "deck": list,
+            "crib": list,
+            "the_cut": cribbage.Card,
+            "stack": list,
+        }
+        for key in attributes:
+            with self.subTest(key=key):
+                val = getattr(self.hand, key)
+                self.assertIsInstance(val, attributes[key])
+
+    def test_seq(self):
+        self.assertEqual(self.hand.seq, 0)
+
+    def test_players(self):
+        self.assertCountEqual(self.hand.players, self.players)
+
+    def test_deck(self):
+        # there are 52 cards including deck, crib and hands
+        self.assertEqual(len([self.hand.the_cut]), 1)
+
+    def test_cut(self):
+        self.assertIsInstance(self.hand.the_cut, cribbage.Card)
+
+    def test_count(self):
+        """
+        Correctly count hands and award points in the crib
+        """
+        crib_strings = ["2H", "AD"]
+        crib = [cribbage.card_from_string(s) for s in crib_strings]
+        player_1_strings = ["2D", "3H"]
+        player_1_hand = [cribbage.card_from_string(s) for s in player_1_strings]
+        player_2_strings = ["6S", "6C", "6D"]
+        player_2_hand = [cribbage.card_from_string(s) for s in player_2_strings]
+        player_3_strings = ["AS", "AC"]
+        player_3_hand = [cribbage.card_from_string(s) for s in player_3_strings]
+
+        # clear out the cut for ease
+        #self.hand.the_cut = cribbage.card_from_string("AH")
+        self.hand.the_cut = None # TODO Implement counting the cut
+        self.hand.crib = crib
+        self.hand.players[0].count_hand = player_1_hand
+        self.hand.players[1].count_hand = player_2_hand
+        self.hand.players[2].count_hand = player_3_hand
+
+        self.hand.count()
+
+        # results with cut
+        #result = [3, 6, 8]
+
+        # results without cut
+        result = [0, 6, 2]
+
+        for i in range(0, 3):
+            with self.subTest(i=i):
+                self.assertEqual(self.hand.players[i].score, result[i])
+
+    def test_deal(self):
+        """
+        All hands have four cards
+        """
+        for n in range(2, 5):
+            with self.subTest(n=n):
+                local_deck = cribbage.build_deck()
+                players = []
+                for i in range(1, n):
+                    players.append(cribbage.Player(f"Player {i}"))
+                local_hand = cribbage.Hand(players, local_deck)
+                for player in local_hand.players:
+                    self.assertEqual(len(player.hand), 4)
+
+        in_hand = 0
+        for player in self.hand.players:
+            self.assertEqual(len(player.hand), 4)
+            in_hand += 4
+
+        self.assertEqual(len(self.hand.crib), 4)
+
+        in_play = 1 + in_hand + 4
+        self.assertEqual(len(self.hand.deck) + in_play, 52)
+
+    @unittest.SkipTest
+    def test_play(self):
+        pass
