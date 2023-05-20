@@ -254,6 +254,24 @@ def score(hand: list, cut: Card = None) -> None:
     score += score_cut(hand, cut)
     return score
 
+def determine_possible(
+        hand: typing.List[Card],
+        stack: typing.List[Card],
+        maximum: int = 31
+    ) -> typing.List[Card]:
+    """
+    Determine which cards in hand are possible to play
+    """
+    possible = []
+    total = 0
+    for card in stack:
+        total += card.value
+    diff = maximum - total
+    for card in hand:
+        if card.value <= diff:
+            possible.append(card)
+    return possible
+
 def strategy_random(
         hand: typing.List[Card],
         seen: typing.List[Card],
@@ -265,13 +283,7 @@ def strategy_random(
     """
     possible = []
     if stack:
-        total = 0
-        for card in stack:
-            total += card.value
-        diff = 31 - total
-        for card in hand:
-            if card.value <= diff:
-                possible.append(card)
+        possible = determine_possible(hand, stack)
     else:
         possible = hand
     # choose n random cards from the possible selections
@@ -418,10 +430,12 @@ class Hand(object):
                     card_to_play = player.play(self.stack)
                     if not card_to_play:
                         go += 1
+                        if go == len(self.players):
+                            self.award(player, 1)
                     else:
                         go = 0
-                    if go == len(self.players):
-                        self.award(player, 1)
+                        self.stack += card_to_play
+                        # TODO check stack for points and award those points
 
     def count(self) -> None:
         """
