@@ -238,9 +238,7 @@ class TestCribbageHand(unittest.TestCase):
         player_3_strings = ["AS", "AC"]
         player_3_hand = [cribbage.card_from_string(s) for s in player_3_strings]
 
-        # clear out the cut for ease
-        #self.hand.the_cut = cribbage.card_from_string("AH")
-        self.hand.the_cut = None # TODO Implement counting the cut
+        self.hand.the_cut = cribbage.card_from_string("AH")
         self.hand.crib = crib
         self.hand.players[0].count_hand = player_1_hand
         self.hand.players[1].count_hand = player_2_hand
@@ -249,10 +247,7 @@ class TestCribbageHand(unittest.TestCase):
         self.hand.count()
 
         # results with cut
-        #result = [3, 6, 8]
-
-        # results without cut
-        result = [0, 6, 2]
+        result = [3, 6, 8]
 
         for i in range(0, 3):
             with self.subTest(i=i):
