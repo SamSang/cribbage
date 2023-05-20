@@ -178,7 +178,7 @@ def score_pair(cards) -> int:
             points += 2
     return points
 
-def score_seq(cards) -> int:
+def score(hand, cut: Card = None) -> int:
     """
     Score when a the ranks of cards in a set are in sequence
     """
@@ -286,10 +286,12 @@ class Player(object):
     def __init__(self, name = "Player 0", strategy_hand = strategy_random, strategy_pegs = strategy_random) -> None:
         self.name = name
         self.score = 0
-        self._hand = typing.List[Card]
+        self._hand: typing.List[Card] = []
         self._seen = set()
         self.strategy_hand = strategy_hand
         self.strategy_pegs = strategy_pegs
+
+        self.count_hand: typing.List[Card] = []
 
     def see(self, card: Card) -> None:
         """
@@ -335,6 +337,101 @@ class Player(object):
         """
         self.hand, selection = self.strategy_pegs(self.hand, self.seen, stack)
         return selection[0]
+
+class WinCondition(Exception):
+    """Raised when a player has won"""
+    # Using this exception to halt the program whenever a player wins
+    def __init__(self, players: typing.List[Player], *args: object) -> None:
+        super().__init__(*args)
+        self.players = players
+
+class Hand(object):
+    """
+    Playing out one hand of cribbage
+    """
+    def __init__(self, players: typing.List[Player], deck: typing.List[Card], seq = 0, win = 121) -> None:
+        self.players = players
+        self.deck = deck
+        self.seq = seq
+        self.win = win
+        self.the_cut: Card = None
+        self.deal()
+        self.crib: typing.List[Card] = self.collect()
+        self.stack: typing.List[Card] = []
+
+    def cut(self) -> Card:
+        """
+        Select a cut for the cut
+        """
+        # Cut must not be in the top 5 or bottom five cards
+        i = random.randint(5, len(self.deck) - (1 + 5))
+        return self.deck.pop(i)
+
+    def deal(self) -> None:
+        """
+        Deal cards to each player
+        """
+        hand_size = 4 + (4 // len(self.players))
+        for i in range(0, hand_size):
+            for player in self.players:
+                player.hand += [self.deck.pop()]
+        for player in self.players:
+            player.count_hand = player.hand
+        self.the_cut = self.cut()
+        if self.the_cut.rank == "J":
+            self.award(self.players[len(self.players) - 1], 2)
+
+    def collect(self) -> typing.List[Card]:
+        """
+        Collect cards for the crib
+        """
+        the_crib = []
+        # each player tosses card(s) to the crib
+        for player in self.players:
+            the_crib += player.toss()
+
+        # add cards to the crib to bring the crib size to 4
+        # (only needed for three-player games)
+        more_cards = max(4 - len(the_crib), 0)
+        for i in range(0, more_cards):
+            the_crib += [self.deck.pop()]
+
+        return the_crib
+
+    def award(self, player: Player, points: int) -> bool:
+        """
+        Award a player points
+        """
+        player.score += points
+        if player.score >= self.win:
+            raise WinCondition(self.players)
+    
+    def trick(self) -> bool:
+        """
+        Players play cards on the stack until no player can play
+        """
+        # The last player to say go gets one point
+        go = 0
+        while go < len(self.players):
+            for player in self.players:
+                if go < len(self.players):
+                    card_to_play = player.play(self.stack)
+                    if not card_to_play:
+                        go += 1
+                    else:
+                        go = 0
+                    if go == len(self.players):
+                        self.award(player, 1)
+
+    def count(self) -> None:
+        """
+        Count the points in each player's hand and
+        award those points
+        """
+        for player in self.players:
+            self.award(player, score(player.count_hand, self.the_cut))
+
+        self.award(self.players[len(self.players) - 1], score(self.crib, self.the_cut))
 
 def main():
     deck = build_deck()
