@@ -6,6 +6,8 @@ import random
 import typing
 from itertools import combinations
 from itertools import permutations
+from logger import logger
+import unittest
 
 faces = {
         '10': {
@@ -121,7 +123,6 @@ def build_hand() -> list:
     for card in cards_split:
         cards.append(card_from_string(card))
     return cards
-# TODO build a logger for scoring a hand
 
 def draw_hand(deck: list, n=5) -> list:
     """Choose n random cards from the deck"""
@@ -154,39 +155,37 @@ def consecutive_cards(cards: list) -> bool:
         is_consecutive = True
     return is_consecutive
 
-def check_fifteen(cards) -> int:
+def score_fifteen(cards) -> int:
+    """
+    Score when a set of cards = 15
+    """
     points = 0
-    if add_cards(cards) == 15:
-        print('15 two!')
-        print(cards)
-        points = 2
+    for count_cards in range(len(cards) + 1):
+        for subset in combinations(cards, count_cards):
+            if add_cards(subset) == 15:
+                logger.debug(f'15 two! {subset}')
+                points += 2
     return points
 
-def check_pair(cards) -> int:
+def score_pair(cards) -> int:
+    """
+    Score when a pair of cards has the same rank
+    """
     points = 0
-    if len(cards) == 2 and cards[0].rank == cards[1].rank:
-        print('A pair in there!')
-        print(cards)
-        points = 2
+    for subset in combinations(cards, 2):
+        if len(subset) == 2 and subset[0].rank == subset[1].rank:
+            logger.debug(f'A pair in there! {subset}')
+            points += 2
     return points
 
 def score(hand, cut: Card = None) -> int:
     """
-    Count a cribbage hand
-    TODO
-        logger
-        separate each of the subset analyzers to their own function
+    Score when a the ranks of cards in a set are in sequence
     """
-    score = 0
-    sequences = list()
-    for cards in range(len(hand) + 1):
-        for subset in combinations(hand, cards):
-            # two points for any combination of cards whose sum is 15
-            score += check_fifteen(subset)
-            # two points for each matching card
-            score += check_pair(subset)
-        # get all consecutive sets
-        for subset in permutations(hand, cards):
+    points = 0
+    sequences = []
+    for count_cards in range(len(cards) + 1):
+        for subset in permutations(cards, count_cards):
             # one point for each unique set of sequential cards
             run = list(subset)
             if len(subset) >= 3 and consecutive_cards(run):
@@ -211,27 +210,48 @@ def score(hand, cut: Card = None) -> int:
     # tally points from sequential sets
     unique_sequences_set = set(frozenset(s) for s in unique_sequences)
     for unique_sequence in unique_sequences_set:
-        points = len(unique_sequence)
-        print(list(unique_sequence), 'for', points, 'points')
-        score += points
+        points += len(unique_sequence)
+        logger.debug(f"{list(unique_sequence)} for {points} points")
+    return points
+
+def score_flush(hand: list, cut: Card) -> int:
     # check for a flush
+    points = 0
     suits = list()
     for i in range(len(hand)):
         suits.append(hand[i].suit)
     if len(list(set(suits))) == 1:
-        print('Flush!')
-        score += len(hand)
+        logger.debug('Flush!')
+        points += len(hand)
         # check if we get an extra point for the cut matching the flush
         if cut:
             if cut.suit == suits[0]:
-                print('(including the cut)')
-                score += 1
+                logger.debug('(including the cut)')
+                points += 1
+    return points
+
+def score_cut(hand: list, cut: Card) -> int:
     # check if the hand has a jack matching the suit of the card in the cut
     if cut:
         for card in hand:
             if card.rank == 'Jack' and card.suit == cut.suit:
-                print('Jack in the suit!')
-                score += 1
+                logger.debug('Jack in the suit!')
+                return 1
+    return 0
+
+def score(hand: list, cut: Card = None) -> None:
+    """
+    Count a cribbage hand
+    """
+    score = 0
+    full_hand = hand
+    if cut:
+        full_hand = hand + [cut]
+    score += score_fifteen(full_hand)
+    score += score_pair(full_hand)
+    score += score_seq(full_hand)
+    score += score_flush(hand, cut)
+    score += score_cut(hand, cut)
     return score
 
 def strategy_random(
@@ -417,9 +437,8 @@ def main():
     deck = build_deck()
     random.shuffle(deck)
     hand = draw_hand(deck)
-    print(hand)
     points = score(hand)
-    print(points)
+    logger.debug(points)
 
 if __name__ == '__main__':
     main()
