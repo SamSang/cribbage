@@ -3,6 +3,7 @@ Collection of objects to represent possible cribbage hands
 """
 
 import random
+import typing
 from itertools import combinations
 from itertools import permutations
 from logger import logger
@@ -253,180 +254,87 @@ def score(hand: list, cut: Card = None) -> None:
     score += score_cut(hand, cut)
     return score
 
-def random_index(l: list):
+def strategy_random(
+        hand: typing.List[Card],
+        seen: typing.List[Card],
+        stack: typing.List[Card] = None,
+        n = 1
+    ):
     """
-    Select one random number in the list's index range
+    Randomly choose a card to play
     """
-    return random.randint(0, len(l) - 1)
+    possible = []
+    if stack:
+        total = 0
+        for card in stack:
+            total += card.value
+        diff = 31 - total
+        for card in hand:
+            if card.value <= diff:
+                possible.append(card)
+    else:
+        possible = hand
+    # choose n random cards from the possible selections
+    random.shuffle(possible)
+    chosen = []
+    for i in range(n):
+        chosen.append(possible.pop(len(possible) - 1 - i))
 
-def strategy_random(hand: list, n: int) -> tuple:
-    """
-    Randomly select n cards
-    from the hand
-    """
-    toss = []
-    for i in range(int):
-        toss.append(hand.pop(random_index(hand)))
-    return hand, toss
-
-def split_six(hand: list, strategy: str = "random") -> tuple:
-    """
-    Split a hand of six cards into
-    four to hold and the crib
-    """
-    crib = []
-    # don't split a hand that isn't six cards long
-    if len(hand) != 6:
-        return hand, crib
-    # for now, choose two random cards
-    if strategy == "random":
-        split = strategy_random
-    return split(hand)
+    return hand, chosen
 
 class Player(object):
-    def __init__(self, hand_strategey: function = strategy_random, pegs_strategey: function = strategy_random):
-        self.points = 0
-        self.hand = []
-        self.seen = [] # cards that have been seen
-        self.hand_strategy = hand_strategey
-        self.pegs_strategy = pegs_strategey
+    def __init__(self, name = "Player 0", strategy_hand = strategy_random, strategy_pegs = strategy_random) -> None:
+        self.name = name
+        self.score = 0
+        self._hand = typing.List[Card]
+        self._seen = set()
+        self.strategy_hand = strategy_hand
+        self.strategy_pegs = strategy_pegs
 
-    def see_reshuffle(self):
+    def see(self, card: Card) -> None:
         """
-        Reset the cards the player knows they've seen.
+        Add card to list of cards player has seen
         """
-        self.seen = self.hand # the only cards known are the cards in the hand
+        self._seen.add(card)
+
+    @property
+    def hand(self):
+        return self._hand
+    
+    @hand.setter
+    def hand(self, value):
+        self._hand = value
+        for card in self._hand:
+            self.see(card)
+
+    @property
+    def seen(self):
+        return list(self._seen)
+
+    def reshuffle(self):
+        """
+        Clear memory of cards seen
+        """
+        self._seen = set()
+        for card in self._hand:
+            if isinstance(card, Card):
+                self.see(card)
 
     def toss(self):
         """
-        Decide which cards in hand to put in the crib
+        Hold on to four cards, put the rest in the crib
         """
-        n = max(len(self.hand) - 4, 0)
-        self.hand, player_toss = self.hand_strategy(self.hand, n)
-        return player_toss
+        crib = []
+        n = len(self.hand) - 4
+        self.hand, crib = self.strategy_hand(hand=self.hand, seen=self.seen, n=n)
+        return crib
 
-    def play(self, stack: list = []):
+    def play(self, stack):
         """
-        Decide which cards in hand to play on the stack
+        Add a card to the stack
         """
-        self.hand, player_play = self.pegs_strategy(self.hand, 1)
-        return player_play
-
-class Hand(object):
-    """
-    Play out one hand
-    For a list of players
-    """
-    def __init__(self, players: list, deck: list, dealer: int):
-        self.players = players
-        self.deck = deck
-        self.cut = Card # cut is a card
-        self.crib = []
-        self.dealer = dealer # index of who is the dealer
-
-    def deal(self, cards: int = 6):
-        for player in self.players:
-            player.hand = draw_hand(self.deck, cards)
-    
-    def cut(self):
-        self.cut = self.deck.pop()
-
-    def throw(self) -> list:
-        """
-        Build the crib
-        """
-        # each player adds 1 or two cards to the crib
-        for player in self.players:
-            toss = player.toss()
-            self.crib += toss
-        # if there are fewer than 4 cards (as in a three-player game),
-        # add enough cards to bring the crib up to 4 cards.
-        if len(self.crib) < 4:
-            self.crib += draw_hand(self.deck, 4 - len(self.crib))
-
-class Game(object):
-    def __init__(self, player_count: int = 2):
-        # add correct number of players
-        self.players = []
-        for i in range(player_count):
-            self.players.append(Player())
-        
-        self.deck = build_deck()
-        random.shuffle(self.deck)
-
-
-class TestCribbageScore(unittest.TestCase):
-    '''Test suite for possible hands'''
-
-    def setUp(self):
-        self.configs = [
-            {
-                'name': 'zero',
-                'hand': ['KD', '8C', 'AH', 'QS', '3C'],
-                'score': 0,
-            },
-            {
-                'name': 'one fifteen',
-                'hand': ['8H', '7H', 'KS', 'QH', '1H'],
-                'score': 2,
-            },
-            {
-                'name': 'one pair',
-                'hand': ['AH', '1D', '1H', '6H', '2C'],
-                'score': 2,
-            },
-            {
-                'name': 'three of a kind',
-                'hand': ['1S', '1D', '1H', '6H', '2C'],
-                'score': 6,
-            },
-            {
-                'name': 'four of a kind',
-                'hand': ['1S', '1D', '1H', '6H', '1C'],
-                'score': 12,
-            },
-            {
-                'name': 'run of three',
-                'hand': ['4S', '8D', 'JH', 'QH', 'KC'],
-                'score': 3,
-            },
-            {
-                'name': 'run of four',
-                'hand': ['7S', '1D', 'JH', 'QH', 'KC'],
-                'score': 4,
-            },
-            {
-                'name': 'run of five',
-                'hand': ['9S', '1D', 'JH', 'QH', 'KC'],
-                'score': 5,
-            },
-            {
-                'name': 'flush of four',
-                'hand': ['9S', '1S', 'QS', 'KS', '7D'],
-                'score': 4,
-            },
-            {
-                'name': 'flush of five',
-                'hand': ['9S', '1S', 'QS', 'KS', '2S'],
-                'score': 5,
-            },
-            {
-                'name': 'only his knobs',
-                'hand': ['JC', '8C', 'AH', 'QS', '3C'],
-                'score': 1,
-            },
-        ]
-
-    def test_hands(self):
-        for config in self.configs:
-            with self.subTest(config['name'], config=config):
-                hand = config['hand']
-                expected_score = config['score']
-                cards = []
-                for card in hand:
-                    cards.append(card_from_string(card))
-                cut = cards.pop(-1)
-                self.assertEqual(expected_score, score(cards, cut))
+        self.hand, selection = self.strategy_pegs(self.hand, self.seen, stack)
+        return selection[0]
 
 def main():
     deck = build_deck()
