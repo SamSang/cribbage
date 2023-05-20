@@ -97,7 +97,7 @@ class TestCribbagePlayer(unittest.TestCase):
         attributes = {
             "name": str,
             "score": int,
-            #"hand": typing.List[object], # can't test this type
+            "hand": list,
             "seen": list,
             "_seen": set,
             "strategy_hand": "function",
