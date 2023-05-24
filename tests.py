@@ -260,7 +260,6 @@ class TestCribbageHand(unittest.TestCase):
     def test_players(self):
         self.assertCountEqual(self.hand.players, self.players)
 
-    @unittest.SkipTest # test_cut is interfering with this test
     def test_deck(self):
         """There are 52 cards including deck"""
         self.assertIsNone(self.hand.the_cut)
