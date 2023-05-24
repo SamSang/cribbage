@@ -7,7 +7,6 @@ import typing
 from itertools import combinations
 from itertools import permutations
 from logger import logger
-import unittest
 
 faces = {
         '10': {
@@ -382,23 +381,24 @@ class Hand(object):
     """
     Playing out one hand of cribbage
     """
-    def __init__(self, players: typing.List[Player], deck: typing.List[Card], seq = 0, win = 121) -> None:
+    def __init__(self, players: typing.List[Player], deck: typing.List[Card] = [], seq = 0, win = 121) -> None:
         self.players = players
         self.deck = deck
+        if not deck:
+            self.deck = build_deck()
         self.seq = seq
         self.win = win
         self.the_cut: Card = None
-        self.deal()
-        self.crib: typing.List[Card] = self.collect()
+        self.crib: typing.List[Card] = []
         self.stack: typing.List[Card] = []
 
-    def cut(self) -> Card:
+    def cut(self) -> None:
         """
-        Select a cut for the cut
+        Select a card from the deck and place it in the cut
         """
         # Cut must not be in the top 5 or bottom five cards
         i = random.randint(5, len(self.deck) - (1 + 5))
-        return self.deck.pop(i)
+        self.the_cut = self.deck.pop(i)
 
     def deal(self) -> None:
         """
@@ -410,11 +410,8 @@ class Hand(object):
                 player.hand += [self.deck.pop()]
         for player in self.players:
             player.count_hand = player.hand
-        self.the_cut = self.cut()
-        if self.the_cut.rank == "J":
-            self.award(self.players[len(self.players) - 1], 2)
 
-    def collect(self) -> typing.List[Card]:
+    def collect(self) -> None:
         """
         Collect cards for the crib
         """
@@ -429,7 +426,7 @@ class Hand(object):
         for i in range(0, more_cards):
             the_crib += [self.deck.pop()]
 
-        return the_crib
+        self.crib = the_crib
 
     def award(self, player: Player, points: int) -> bool:
         """
