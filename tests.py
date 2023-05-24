@@ -349,6 +349,7 @@ class TestCribbageHand(unittest.TestCase):
         self.assertEqual(stack_strings, hand_strings[0:3]) # stack has just first three cards
         end_hand_strings = [card.name for card in hand.players[0].hand]
         self.assertEqual(end_hand_strings, [hand_strings[3]]) # stack has just first three cards
+        self.assertEqual(hand.players[0].score, 1) # player was awarded one point for the go
 
 if __name__ == "__main__":
     unittest.main()
