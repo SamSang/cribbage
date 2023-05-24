@@ -1,7 +1,6 @@
 """
 Tests for the cribbage module
 """
-import typing
 import unittest
 
 import cribbage
@@ -242,7 +241,6 @@ class TestCribbageHand(unittest.TestCase):
 
     def test_attrs(self):
         """Has all given attributes"""
-        # Maybe instantiate the Hand
         attributes = {
             "seq": int,
             "players": list,
@@ -312,15 +310,15 @@ class TestCribbageHand(unittest.TestCase):
             with self.subTest(n=n):
                 hand_size = 4 + (4 // n)
                 players = []
-                for i in range(1, n):
-                    players.append(cribbage.Player(f"Player {i}"))
+                for i in range(n):
+                    players.append(cribbage.Player(f"Player {i + 1}"))
                 local_hand = cribbage.Hand(players=players)
                 local_hand.deal()
                 for player in local_hand.players:
                     self.assertEqual(len(player.hand), hand_size)
 
-    def test_toss(self):
-        """After toss, all hands and the crib have 4 cards"""
+    def test_collect(self):
+        """After collecting crib, all hands and the crib have 4 cards"""
         for n in range(2, 5):
             with self.subTest(n=n):
                 players = []
@@ -328,11 +326,11 @@ class TestCribbageHand(unittest.TestCase):
                     players.append(cribbage.Player(f"Player {i}"))
                 local_hand = cribbage.Hand(players=players)
                 local_hand.deal()
-                local_hand.toss()
+                local_hand.collect()
                 for player in local_hand.players:
                     self.assertEqual(len(player.hand), 4) # each player has 4 cards
                 self.assertEqual(len(local_hand.crib), 4) # the crib has 4 cards
-                self.assertEqual(len(local_hand.deck), 52 - (n + 1) * 4) # the rest of the cards are in the deck
+                self.assertEqual(len(local_hand.deck), 52 - (len(local_hand.players) + 1) * 4) # the rest of the cards are in the deck
 
     @unittest.SkipTest
     def test_play(self):
