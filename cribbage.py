@@ -392,6 +392,13 @@ class Hand(object):
         self.crib: typing.List[Card] = []
         self.stack: typing.List[Card] = []
 
+    def show(self, card: Card) -> None:
+        """
+        Show each player one card
+        """
+        for player in self.players:
+            player.see(card)
+
     def cut(self) -> None:
         """
         Select a card from the deck and place it in the cut
@@ -399,6 +406,7 @@ class Hand(object):
         # Cut must not be in the top 5 or bottom five cards
         i = random.randint(5, len(self.deck) - (1 + 5))
         self.the_cut = self.deck.pop(i)
+        self.show(self.the_cut)
 
     def deal(self) -> None:
         """
