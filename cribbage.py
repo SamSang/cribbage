@@ -142,9 +142,6 @@ def add_cards(cards: list) -> int:
         values.append(card.value)
     return sum(values)
 
-def seq_card(card: Card):
-    return card.seq
-
 def consecutive_cards(cards: list) -> bool:
     """returns true if all cards in the list are consecutive"""
     is_consecutive = False
