@@ -303,6 +303,13 @@ def pegs_packs(stack: list) -> list:
         packs.append(stack[i:n])
     return packs
 
+def peg_31(stack: typing.List[Card]) -> int:
+    """Return 1 if stack totals 31"""
+    points = 0
+    if sum(card.value for card in stack) == 31:
+        points = 1
+    return points
+
 def score_pegs(stack: typing.List[Card]) -> int:
     """
     Scoring the pegs
@@ -325,6 +332,7 @@ def score_pegs(stack: typing.List[Card]) -> int:
         for pack in pegs_packs(stack):
             result.append(check(pack))
         points += max(result)
+    points += peg_31(stack)
     return points
 
 """

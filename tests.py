@@ -197,7 +197,7 @@ class TestCribbagePegs(unittest.TestCase):
             (["6S", "8H", "7D"], 5),
             (["6S", "8H", "7D", "9C"], 4),
             (["7S", "8H", "6D", "9C"], 6),
-            (["7S", "8H", "6D", "1C"], 0),
+            (["7S", "8H", "6D", "JC"], 1),
         ]
         for i in range(len(stacks_strings)):
             with self.subTest(i=i):
