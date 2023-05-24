@@ -309,67 +309,6 @@ def pegs(
     except IndexError:
         return hand, None
 
-def determine_possible(
-        hand: typing.List[Card],
-        stack: typing.List[Card],
-        maximum: int = 31
-    ) -> typing.List[Card]:
-    """
-    Determine which cards in hand are possible to play
-    """
-    possible = []
-    total = 0
-    for card in stack:
-        total += card.value
-    diff = maximum - total
-    for card in hand:
-        if card.value <= diff:
-            possible.append(card)
-    return possible
-
-def strategy_random(
-        hand: typing.List[Card],
-        seen: typing.List[Card],
-        stack: typing.List[Card] = None,
-        n = 1
-    ):
-    """
-    Randomly choose a card to play
-    """
-    possible = []
-    if stack:
-        possible = determine_possible(hand, stack)
-    else:
-        possible = hand
-    # choose n random cards from the possible selections
-    random.shuffle(possible)
-    chosen = []
-    for i in range(n):
-        chosen.append(possible.pop(len(possible) - 1 - i))
-
-    return hand, chosen
-
-def strategy_sequence(
-        hand: typing.List[Card],
-        seen: typing.List[Card],
-        stack: typing.List[Card] = None,
-        n = 1
-    ):
-    """
-    Choose the next card in the sequence to play
-    """
-    possible = []
-    if stack:
-        possible = determine_possible(hand, stack)
-    else:
-        possible = hand
-    # choose The next card to play
-    chosen = []
-    for i in range(n):
-        chosen.append(possible.pop(0))
-
-    return hand, chosen
-
 class Player(object):
     def __init__(self, name = "Player 0", strategy_hand = pick_sequence, strategy_pegs = play_sequence) -> None:
         self.name = name

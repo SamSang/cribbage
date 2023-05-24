@@ -35,20 +35,6 @@ class TestStrategySequence(unittest.TestCase):
         self.assertEqual(len(self.hand), 5)
         self.assertIsNone(card)
 
-class TestCribbageStrategy(unittest.TestCase):
-
-    def test_sequence(self):
-        """Test that the sequence strategy"""
-        hand_strings = ['KD', '8C', 'AH', 'QS', '3C']
-        hand = [cribbage.card_from_string(s) for s in hand_strings]
-        played = []
-        for i in range(len(hand)):
-            hand, card_played = cribbage.strategy_sequence(hand, [])
-            played += card_played
-        self.assertEqual(hand, []) # hand is empty
-        played_values = [card.name for card in played]
-        self.assertEqual(hand_strings, played_values) # all cards were played in sequence
-
 class TestCribbageScore(unittest.TestCase):
     '''Test suite for possible hands'''
 
