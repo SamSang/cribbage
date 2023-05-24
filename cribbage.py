@@ -133,7 +133,11 @@ def draw_hand(deck: list, n=5) -> list:
         i += 1
     return hand
 
-def add_cards(cards: list) -> int:
+"""
+Constituent functions of scoring a cribbage hand
+"""
+
+def add_cards(cards: typing.List[Card]) -> int:
     """
     return sum of values of passed cards
     """
@@ -142,7 +146,7 @@ def add_cards(cards: list) -> int:
         values.append(card.value)
     return sum(values)
 
-def consecutive_cards(cards: list) -> bool:
+def consecutive_cards(cards: typing.List[Card]) -> bool:
     """returns true if all cards in the list are consecutive"""
     is_consecutive = False
     sequence = [card.seq for card in cards]
@@ -152,7 +156,7 @@ def consecutive_cards(cards: list) -> bool:
         is_consecutive = True
     return is_consecutive
 
-def score_fifteen(cards) -> int:
+def score_fifteen(cards: typing.List[Card]) -> int:
     """
     Score when a set of cards = 15
     """
@@ -164,7 +168,7 @@ def score_fifteen(cards) -> int:
                 points += 2
     return points
 
-def score_pair(cards) -> int:
+def score_pair(cards: typing.List[Card]) -> int:
     """
     Score when a pair of cards has the same rank
     """
@@ -175,7 +179,7 @@ def score_pair(cards) -> int:
             points += 2
     return points
 
-def score_seq(cards) -> int:
+def score_seq(cards: typing.List[Card]) -> int:
     """
     Score when a the ranks of cards in a set are in sequence
     """
@@ -211,7 +215,7 @@ def score_seq(cards) -> int:
         logger.debug(f"{list(unique_sequence)} for {points} points")
     return points
 
-def score_flush(hand: list, cut: Card) -> int:
+def score_flush(hand: typing.List[Card], cut: Card) -> int:
     # check for a flush
     points = 0
     suits = list()
@@ -227,7 +231,7 @@ def score_flush(hand: list, cut: Card) -> int:
                 points += 1
     return points
 
-def score_cut(hand: list, cut: Card) -> int:
+def score_cut(hand: typing.List[Card], cut: Card) -> int:
     # check if the hand has a jack matching the suit of the card in the cut
     if cut:
         for card in hand:
@@ -236,7 +240,7 @@ def score_cut(hand: list, cut: Card) -> int:
                 return 1
     return 0
 
-def score(hand: list, cut: Card = None) -> None:
+def score(hand: typing.List[Card], cut: Card = None) -> int:
     """
     Count a cribbage hand
     """
