@@ -4,7 +4,6 @@ Tests for the cribbage module
 import unittest
 
 import cribbage
-import strategy
 
 class TestStrategySequence(unittest.TestCase):
     """Sequence Strategy works as intended"""
@@ -15,24 +14,24 @@ class TestStrategySequence(unittest.TestCase):
         return super().setUp()
     
     def test_pick_sequence(self):
-        self.hand, played = strategy.pick_sequence(self.hand, [], 5)
+        self.hand, played = cribbage.pick_sequence(self.hand, [], 5)
         self.assertEqual(self.hand, []) # hand is empty
         played_values = [card.name for card in played]
         self.assertEqual(self.hand_strings, played_values) # all cards were played in sequence
 
     def test_play_sequence(self):
-        card = strategy.play_sequence(self.hand, [], [])
+        card = cribbage.play_sequence(self.hand, [], [])
         self.assertEqual(card.name, self.hand_strings[0])
 
     def test_pegs_play(self):
         """Play first card at or below stack_max"""
-        self.hand, card = strategy.pegs(self.hand, [], [], stack_max=8)
+        self.hand, card = cribbage.pegs(self.hand, [], [], stack_max=8)
         self.assertEqual(len(self.hand), 4)
         self.assertEqual("8C", card.name)
 
     def test_pegs_no_play(self):
         """Return None when no card can be played"""
-        self.hand, card = strategy.pegs(self.hand, [], [], stack_max=0)
+        self.hand, card = cribbage.pegs(self.hand, [], [], stack_max=0)
         self.assertEqual(len(self.hand), 5)
         self.assertIsNone(card)
 

@@ -6,6 +6,7 @@ import random
 import typing
 from itertools import combinations
 from itertools import permutations
+
 from logger import logger
 
 faces = {
@@ -253,6 +254,61 @@ def score(hand: list, cut: Card = None) -> None:
     score += score_cut(hand, cut)
     return score
 
+"""
+Strategies for the Player class to use
+
+Player can
+pick n cards for the crib and
+play 1 card to the stack
+
+In each case, we have to return the hand
+so Player knows their new hand.
+
+pegs will be a wrapper that screens possible cards
+for the pegs strategy
+"""
+
+def pick_sequence(
+        hand: typing.List[Card],
+        seen: typing.List[Card],
+        n: int
+    ) -> typing.Tuple[typing.List[Card], typing.List[Card]]:
+    """Choose next sequence cards"""
+    chosen = []
+    for i in range(n):
+        chosen.append(hand.pop(0))
+    return hand, chosen
+
+def play_sequence(
+        possible: typing.List[Card],
+        seen: typing.List[Card],
+        stack: typing.List[Card]
+    ) -> Card:
+    """Choose next card in sequence, or return an empty list"""
+    possible, card = pick_sequence(possible, None, 1)
+    return card[0]
+
+def pegs(
+        hand: typing.List[Card],
+        seen: typing.List[Card],
+        stack: typing.List[Card],
+        choose = play_sequence,
+        stack_max = 31
+    ) -> typing.Tuple[typing.List[Card], Card]:
+    """Select a card to play on the stack"""
+    stack_total = sum([card.value for card in stack])
+    diff = stack_max - stack_total
+    possible = []
+    for card in hand:
+        if card.value <= diff:
+            possible.append(card)
+    try:
+        card = choose(possible, seen, stack)
+        hand.remove(card)
+        return hand, card
+    except IndexError:
+        return hand, None
+
 def determine_possible(
         hand: typing.List[Card],
         stack: typing.List[Card],
@@ -315,7 +371,7 @@ def strategy_sequence(
     return hand, chosen
 
 class Player(object):
-    def __init__(self, name = "Player 0", strategy_hand = strategy_random, strategy_pegs = strategy_random) -> None:
+    def __init__(self, name = "Player 0", strategy_hand = pick_sequence, strategy_pegs = play_sequence) -> None:
         self.name = name
         self.score = 0
         self._hand: typing.List[Card] = []
@@ -367,8 +423,7 @@ class Player(object):
         """
         Add a card to the stack
         """
-        self.hand, selection = self.strategy_pegs(self.hand, self.seen, stack)
-        return selection[0]
+        return self.strategy_pegs(self.hand, self.seen, stack)
 
 class WinCondition(Exception):
     """Raised when a player has won"""
