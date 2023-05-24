@@ -331,6 +331,17 @@ class TestCribbageHand(unittest.TestCase):
                 self.assertEqual(len(local_hand.crib), 4) # the crib has 4 cards
                 self.assertEqual(len(local_hand.deck), 52 - (len(local_hand.players) + 1) * 4) # the rest of the cards are in the deck
 
+    def test_award(self):
+        player = self.hand.players[0]
+        self.hand.award(player, 1)
+        self.assertEqual(self.hand.players[0].score, 1)
+
+    def test_award_win(self):
+        """Default win score raises win exception"""
+        player = self.hand.players[0]
+        with self.assertRaises(cribbage.WinCondition):
+            self.hand.award(player, 121)
+
     @unittest.SkipTest
     def test_play(self):
         """Cards get played on the stack

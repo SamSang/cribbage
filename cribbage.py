@@ -428,9 +428,9 @@ class Hand(object):
 
         self.crib = the_crib
 
-    def award(self, player: Player, points: int) -> bool:
+    def award(self, player: Player, points: int) -> None:
         """
-        Award a player points
+        Award a player points and check if they've won
         """
         player.score += points
         if player.score >= self.win:
