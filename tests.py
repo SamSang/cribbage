@@ -468,7 +468,6 @@ class TestCribbageHand(unittest.TestCase):
         self.assertEqual(end_hand_strings, [hand_strings[3]]) # hand has only one card remaining
         self.assertEqual(hand.players[0].score, 1) # player was awarded one point for the go
 
-    @unittest.SkipTest
     def test_trick_go_2(self):
         """Player is awarded 2 points for exactly 31"""
         hand_strings = ["KD", "QD", "1D", "AS"]
