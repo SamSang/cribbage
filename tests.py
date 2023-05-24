@@ -340,6 +340,32 @@ class TestCribbageHand(unittest.TestCase):
         with self.assertRaises(cribbage.WinCondition):
             self.hand.award(player, 121)
 
+    def test_count(self):
+        """Points in hands and the crib are awarded for two players"""
+        # Note that testing 3 players would involve a random card
+        # set the hands for each player
+        hand_strings = [
+            ["KD", "QD", "1D", "9D", "4S", "AD"],
+            ["JH", "1S", "2H", "3S", "4D", "6H"],
+        ]
+        players = []
+        for i, hand_string in enumerate(hand_strings):
+            player_hand = [cribbage.card_from_string(s) for s in hand_string]
+            player = cribbage.Player(name=f"Player {i + 1}", hand=player_hand)
+            players.append(player)
+
+        # build a hand using these players
+        local_hand = cribbage.Hand(players=players)
+        local_hand.the_cut = cribbage.card_from_string("5S")
+        local_hand.collect()
+        local_hand.count()
+
+        # validate the resulting scores
+        scores = [6, 9 + 12]
+        for i in range(len(local_hand.players)):
+            with self.subTest(i=i):
+                self.assertEqual(local_hand.players[i].score, scores[i])
+
     def test_trick_go_1(self):
         """Cards get played on the stack
         One player plays three cards on the stack and is awarded one point for the go.

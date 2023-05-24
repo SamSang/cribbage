@@ -316,13 +316,13 @@ class Player(object):
         self.score = 0
         if not hand:
             self._hand: typing.List[Card] = []
+            self.count_hand: typing.List[Card] = []
         else:
             self._hand: typing.List[Card] = hand
+            self.count_hand: typing.List[Card] = hand
         self._seen = set()
         self.strategy_hand = strategy_hand
         self.strategy_pegs = strategy_pegs
-
-        self.count_hand: typing.List[Card] = []
 
     def see(self, card: Card) -> None:
         """
