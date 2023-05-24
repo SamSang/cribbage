@@ -255,6 +255,78 @@ def score(hand: typing.List[Card], cut: Card = None) -> int:
     score += score_cut(hand, cut)
     return score
 
+def peg_fifteen(stack: typing.List[Card]) -> int:
+    """If the stack totals 15, return 2, else 0"""
+    points = 0
+    total = 0
+    for card in stack:
+        total += card.value
+    if total == 15:
+        points = 2
+    return points
+
+def peg_pairs(stack: typing.List[Card]) -> int:
+    """
+    Return n(n-1) for n > 1 where n is the number of matching ranks
+    """
+    points = 0
+    n = len(stack)
+    matching = True
+    for i in range(1, n): # doesn't interate for 1
+        if stack[i - 1].rank != stack[i].rank:
+            matching = False
+    if matching:
+        points = n * (n - 1)
+    return points
+
+def get_seq(card: Card):
+    """Helper function to sort a list of cards"""
+    return card.seq
+
+def peg_seq(stack: typing.List[Card]) -> int:
+    """
+    return the length of the stack if all cards are in sequence
+    """
+    points = 0
+    stack.sort(key=get_seq)
+    if consecutive_cards(stack) and len(stack) >= 3:
+        points = len(stack)
+    return points
+
+def pegs_packs(stack: list) -> list:
+    """
+    Return the sets of cards to consider in the pegs
+    """
+    n = max(len(stack), 0)
+    packs = []
+    for i in range(n - 1):
+        packs.append(stack[i:n])
+    return packs
+
+def score_pegs(stack: typing.List[Card]) -> int:
+    """
+    Scoring the pegs
+
+    stack is the stack played, including the latest card
+
+    Scoring pegs looks at the stack,
+    confirms the set to score contains the latest card, then
+    returns the total points awarded.
+    """
+    # fifteen, pairs, sequence
+    points = 0
+    checks = [
+        peg_fifteen,
+        peg_pairs,
+        peg_seq,
+    ]
+    for check in checks:
+        result = [0]
+        for pack in pegs_packs(stack):
+            result.append(check(pack))
+        points += max(result)
+    return points
+
 """
 Strategies for the Player class to use
 

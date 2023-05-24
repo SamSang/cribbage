@@ -117,6 +117,93 @@ class TestCribbageScore(unittest.TestCase):
         cut = cards.pop(-1)
         self.assertEqual(1, cribbage.score(cards, cut))
 
+class TestCribbagePegs(unittest.TestCase):
+
+    def test_fifteen_2(self):
+        """Two cards fifteen returns 2"""
+        stack = [cribbage.card_from_string(s) for s in ["1S", "5D"]]
+        self.assertEqual(cribbage.peg_fifteen(stack), 2)
+
+    def test_fifteen_3(self):
+        """Three cards fifteen returns 2"""
+        stack = [cribbage.card_from_string(s) for s in ["7S", "7D", "AH"]]
+        self.assertEqual(cribbage.peg_fifteen(stack), 2)
+
+    def test_fifteen_0(self):
+        """Two cards 16 returns 0"""
+        stack = [cribbage.card_from_string(s) for s in ["8S", "8D"]]
+        self.assertEqual(cribbage.peg_fifteen(stack), 0)
+
+    def test_pairs_0(self):
+        """Stacks of 0-4 non-matching cards"""
+        stacks_strings = [
+            ["7S"],
+            ["7S", "AH"],
+            ["7S", "7D", "AH"],
+            ["8D", "9H", "3C", "2D"],
+        ]
+        for stack_string in stacks_strings:
+            with self.subTest(stack_string=stack_string):
+                hand = [cribbage.card_from_string(s) for s in stack_string]
+                self.assertEqual(0, cribbage.peg_pairs(hand))
+
+    def test_pairs(self):
+        """Stacks of 0-4 matching cards"""
+        stacks_strings = [
+            (["7S"], 0),
+            (["7S", "7H"], 2),
+            (["7S", "7D", "7H"], 6),
+            (["7S", "7D", "7H", "7C"], 12),
+        ]
+        for i in range(len(stacks_strings)):
+            with self.subTest(i=i):
+                hand = [cribbage.card_from_string(s) for s in stacks_strings[i][0]]
+                self.assertEqual(stacks_strings[i][1], cribbage.peg_pairs(hand))
+
+    def test_seq(self):
+        """Stacks of sequences"""
+        stacks_strings = [
+            (["7S"], 0),
+            (["7S", "8H"], 0),
+            (["7S", "7D", "7H"], 0),
+            (["6S", "7D", "8H"], 3),
+            (["6S", "7D", "8H", "9C"], 4),
+            (["6S", "8H", "7D", "9C"], 4),
+        ]
+        for i in range(len(stacks_strings)):
+            with self.subTest(i=i):
+                hand = [cribbage.card_from_string(s) for s in stacks_strings[i][0]]
+                self.assertEqual(stacks_strings[i][1], cribbage.peg_seq(hand))
+
+    def test_pegs_packs(self):
+        """Produce expected lists"""
+        stack = ["6S", "8H", "7D", "9C", "AH"]
+        expected = [
+            ["6S", "8H", "7D", "9C", "AH"],
+            ["8H", "7D", "9C", "AH"],
+            ["7D", "9C", "AH"],
+            ["9C", "AH"],
+        ]
+        result = cribbage.pegs_packs(stack)
+        self.assertEqual(expected, result)
+
+    def test_score_pegs(self):
+        """Counts pegs of various stacks"""
+        stacks_strings = [
+            (["7S"], 0),
+            (["7S", "8H"], 2),
+            (["7S", "7D", "7H"], 6),
+            (["7S", "4D", "2H"], 0),
+            (["6S", "8H", "7D"], 5),
+            (["6S", "8H", "7D", "9C"], 4),
+            (["7S", "8H", "6D", "9C"], 6),
+            (["7S", "8H", "6D", "1C"], 0),
+        ]
+        for i in range(len(stacks_strings)):
+            with self.subTest(i=i):
+                hand = [cribbage.card_from_string(s) for s in stacks_strings[i][0]]
+                self.assertEqual(stacks_strings[i][1], cribbage.score_pegs(hand))
+
 class TestCribbagePlayer(unittest.TestCase):
     """Test suite for Player class"""
 
