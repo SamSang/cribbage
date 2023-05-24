@@ -352,8 +352,18 @@ class TestCribbageHand(unittest.TestCase):
         stack_strings = [card.name for card in hand.stack]
         self.assertEqual(stack_strings, hand_strings[0:3]) # stack has just first three cards
         end_hand_strings = [card.name for card in hand.players[0].hand]
-        self.assertEqual(end_hand_strings, [hand_strings[3]]) # stack has just first three cards
+        self.assertEqual(end_hand_strings, [hand_strings[3]]) # hand has only one card remaining
         self.assertEqual(hand.players[0].score, 1) # player was awarded one point for the go
+
+    @unittest.SkipTest
+    def test_trick_go_2(self):
+        """Player is awarded 2 points for exactly 31"""
+        hand_strings = ["KD", "QD", "1D", "AS"]
+        player_hand = [cribbage.card_from_string(s) for s in hand_strings]
+        players = [cribbage.Player(hand=player_hand)]
+        hand = cribbage.Hand(players=players)
+        hand.trick()
+        self.assertEqual(hand.players[0].score, 2) # player was awarded two points for the go + 31
 
 if __name__ == "__main__":
     unittest.main()

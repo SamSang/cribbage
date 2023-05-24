@@ -463,6 +463,7 @@ class Hand(object):
                     else:
                         go = 0
                         self.stack.append(card_to_play)
+                        # TODO the 31 should be part of scoring the stack for the player
                         # TODO check stack for points and award those points
 
     def count(self) -> None:
