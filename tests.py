@@ -336,23 +336,19 @@ class TestCribbageHand(unittest.TestCase):
         with self.assertRaises(cribbage.WinCondition):
             self.hand.award(player, 121)
 
-    @unittest.SkipTest
-    def test_play(self):
+    def test_trick_go_1(self):
         """Cards get played on the stack
         One player plays three cards on the stack and is awarded one point for the go.
         """
         hand_strings = ["KD", "QD", "1D", "9D"]
         player_hand = [cribbage.card_from_string(s) for s in hand_strings]
-        players = [cribbage.Player(strategy_pegs=cribbage.strategy_sequence)]
-        deck = cribbage.build_deck()
-        hand = cribbage.Hand(players=players, deck=deck)
-        hand.players[0].hand = player_hand
-        hand.players[0].score = 0 # just in case jack in the suit comes up on the cut
+        players = [cribbage.Player(hand=player_hand)]
+        hand = cribbage.Hand(players=players)
         hand.trick()
         stack_strings = [card.name for card in hand.stack]
-        self.assertEqual(stack_strings, hand_strings[0:2]) # stack has just first three cards
+        self.assertEqual(stack_strings, hand_strings[0:3]) # stack has just first three cards
         end_hand_strings = [card.name for card in hand.players[0].hand]
-        self.assertEqual(end_hand_strings, hand_strings[3]) # stack has just first three cards
+        self.assertEqual(end_hand_strings, [hand_strings[3]]) # stack has just first three cards
 
 if __name__ == "__main__":
     unittest.main()

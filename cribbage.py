@@ -311,10 +311,13 @@ def pegs(
         return hand, None
 
 class Player(object):
-    def __init__(self, name = "Player 0", strategy_hand = pick_sequence, strategy_pegs = play_sequence) -> None:
+    def __init__(self, name = "Player 0", hand: typing.List[Card] = None, strategy_hand = pick_sequence, strategy_pegs = play_sequence) -> None:
         self.name = name
         self.score = 0
-        self._hand: typing.List[Card] = []
+        if not hand:
+            self._hand: typing.List[Card] = []
+        else:
+            self._hand: typing.List[Card] = hand
         self._seen = set()
         self.strategy_hand = strategy_hand
         self.strategy_pegs = strategy_pegs
@@ -359,11 +362,12 @@ class Player(object):
         self.hand, crib = self.strategy_hand(hand=self.hand, seen=self.seen, n=n)
         return crib
 
-    def play(self, stack):
+    def play(self, stack: typing.List[Card]):
         """
         Add a card to the stack
         """
-        return self.strategy_pegs(self.hand, self.seen, stack)
+        self.hand, card = pegs(self.hand, self.seen, stack, self.strategy_pegs)
+        return card
 
 class WinCondition(Exception):
     """Raised when a player has won"""
@@ -455,7 +459,7 @@ class Hand(object):
                             self.award(player, 1)
                     else:
                         go = 0
-                        self.stack += card_to_play
+                        self.stack.append(card_to_play)
                         # TODO check stack for points and award those points
 
     def count(self) -> None:
