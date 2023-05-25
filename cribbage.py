@@ -608,7 +608,7 @@ class Game(object):
 
     def advance(self):
         """Change list of players to reflect the dealer"""
-        pass
+        self.players.insert(0, self.players.pop())
 
     def play(self):
         """
