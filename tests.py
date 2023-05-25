@@ -477,5 +477,48 @@ class TestCribbageHand(unittest.TestCase):
         hand.trick()
         self.assertEqual(hand.players[0].score, 2) # player was awarded two points for the go + 31
 
+    @unittest.SkipTest
+    def test_tricks(self):
+        """Test that all tricks get played out"""
+        pass
+
+class TestCribbageGame(unittest.TestCase):
+
+    @unittest.SkipTest
+    def test_attrs(self):
+        """Has all given attributes"""
+        game = cribbage.Game()
+        attributes = {
+            "seq": int,
+            "n": int,
+            "players": list,
+            "deck": list,
+            "dealer": cribbage.Player,
+            "win_threshold": int,
+        }
+        for key in attributes:
+            val = getattr(game, key)
+            self.assertIsInstance(val, attributes[key])
+
+    @unittest.SkipTest
+    def test_shuffle(self):
+        """Deck is replentished and shuffled"""
+        pass
+
+    @unittest.SkipTest
+    def test_skunk(self):
+        """Check if any player got skunked"""
+        pass
+
+    @unittest.SkipTest
+    def test_advance(self):
+        """Validate how the deal is passed to next player"""
+        pass
+
+    @unittest.SkipTest
+    def test_play(self):
+        """Play a sequence of hands with the set of players"""
+        pass
+
 if __name__ == "__main__":
     unittest.main()

@@ -15,4 +15,4 @@ file_handler.setFormatter(log_format)
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
 
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)

@@ -404,6 +404,16 @@ class Player(object):
         self.strategy_hand = strategy_hand
         self.strategy_pegs = strategy_pegs
 
+    def __repr__(self):
+        return str({
+            "name": self.name,
+            "score": self.score,
+            "hand": self.hand,
+            #"seen": self.seen,
+            #"strat_hand": self.strategy_hand,
+            #"strat_pegs": self.strategy_pegs,
+        })
+
     def see(self, card: Card) -> None:
         """
         Add card to list of cards player has seen
@@ -498,17 +508,17 @@ class Hand(object):
         for i in range(0, hand_size):
             for player in self.players:
                 player.hand += [self.deck.pop()]
-        for player in self.players:
-            player.count_hand = player.hand
 
     def collect(self) -> None:
         """
         Collect cards for the crib
         """
         the_crib = []
-        # each player tosses card(s) to the crib
+        # each player tosses card(s) to the crib then
+        # make a shallow copy of the hand to count later
         for player in self.players:
             the_crib += player.toss()
+            player.count_hand = list(player.hand)
 
         # add cards to the crib to bring the crib size to 4
         # (only needed for three-player games)
@@ -522,11 +532,13 @@ class Hand(object):
         """
         Award a player points and check if they've won
         """
+        logger.debug(f"Award player {player.name} {points} points")
         player.score += points
         if player.score >= self.win:
+            logger.debug(f"Player {player.name} wins!")
             raise WinCondition(self.players)
     
-    def trick(self) -> bool:
+    def trick(self) -> None:
         """
         Players play cards on the stack until no player can play
         """
@@ -547,6 +559,14 @@ class Hand(object):
                         if points:
                             self.award(player, points)
 
+    def tricks(self) -> None:
+        """
+        Play tricks until there are not cards left in hands
+        """
+        while sum([len(player.hand) for player in self.players]) > 0:
+            self.stack = []
+            self.trick()
+
     def count(self) -> None:
         """
         Count the points in each player's hand and
@@ -558,11 +578,13 @@ class Hand(object):
         self.award(self.players[len(self.players) - 1], score(self.crib, self.the_cut))
 
 def main():
-    deck = build_deck()
-    random.shuffle(deck)
-    hand = draw_hand(deck)
-    points = score(hand)
-    logger.debug(points)
+    players = [Player("1"), Player("2")]
+    hand = Hand(players)
+    hand.deal()
+    hand.collect()
+    hand.cut()
+    hand.tricks()
+    print(hand.players)
 
 if __name__ == '__main__':
     main()
