@@ -577,7 +577,62 @@ class Hand(object):
 
         self.award(self.players[len(self.players) - 1], score(self.crib, self.the_cut))
 
-def main():
+class Game(object):
+
+    def __init__(self,
+                 seq: int = 0,
+                 n: int = 0,
+                 players: typing.List[Player] = [],
+                 win: int = 121
+            ) -> None:
+        self.seq = seq
+
+        self.players: typing.List[Player] = []
+        if n:
+            for i in range(n):
+                self.players.append(Player(f"{i+1}"))
+        if players:
+            self.players = players
+
+        self.deck: typing.List[Card] = []
+        self.win = win
+        self.results: typing.List[Player] = []
+
+    def shuffle(self):
+        """Rebuild the deck of cards"""
+        for player in self.players:
+            player.reshuffle()
+        self.deck = build_deck()
+        # doing this randomly, for now
+        random.shuffle(self.deck)
+
+    def advance(self):
+        """Change list of players to reflect the dealer"""
+        pass
+
+    def play(self):
+        """
+        Play hands until one player wins
+        """
+        try:
+            i = 0
+            while True:
+                i += 1
+                self.advance()
+                self.shuffle()
+                hand = Hand(players=self.players, deck=self.deck, seq=i, win=self.win)
+                hand.deal()
+                hand.collect()
+                hand.cut()
+                hand.tricks()
+                hand.count()
+        except WinCondition as e:
+            self.results = {
+                "players": e.players,
+                "hands": i,
+            }
+
+def main1():
     players = [Player("1"), Player("2")]
     hand = Hand(players)
     hand.deal()
@@ -585,6 +640,12 @@ def main():
     hand.cut()
     hand.tricks()
     print(hand.players)
+
+def main():
+    game = Game(n=2)
+    print(game.players)
+    game.play()
+    print(game.results)
 
 if __name__ == '__main__':
     main()
