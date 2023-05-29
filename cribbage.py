@@ -410,8 +410,8 @@ class Player(object):
             "score": self.score,
             "hand": self.hand,
             #"seen": self.seen,
-            #"strat_hand": self.strategy_hand,
-            #"strat_pegs": self.strategy_pegs,
+            "strat_hand": self.strategy_hand.__name__,
+            "strat_pegs": self.strategy_pegs.__name__,
         })
 
     def see(self, card: Card) -> None:
