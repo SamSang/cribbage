@@ -427,6 +427,66 @@ class TestCribbageHand(unittest.TestCase):
         with self.assertRaises(cribbage.WinCondition):
             self.hand.award(player, 121)
 
+    def test_turn(self):
+        """Player puts a card on the stack"""
+        # build players' hands
+        hand_strings = [
+            ["KD", "QD", "1D", "9D"],
+            ["JH", "1S", "2H", "3S"],
+        ]
+        players = []
+        for i, hand_string in enumerate(hand_strings):
+            player_hand = [cribbage.card_from_string(s) for s in hand_string]
+            player = cribbage.Player(name=f"Player {i + 1}", hand=player_hand)
+            players.append(player)
+        # build a hand using these players
+        local_hand = cribbage.Hand(players=players)
+        local_hand.turn(0)
+        self.assertEqual(str(local_hand.stack), "[KD]") # the first player plays their first card
+
+    def test_turn_go(self):
+        """Player is awarded a point for the go"""
+        # build players' hands
+        hand_strings = [
+            ["KD", "QD", "1D", "9D"],
+            ["JH", "1S", "2H", "3S"],
+        ]
+        players = []
+        for i, hand_string in enumerate(hand_strings):
+            player_hand = [cribbage.card_from_string(s) for s in hand_string]
+            player = cribbage.Player(name=f"Player {i + 1}", hand=player_hand)
+            players.append(player)
+        # build a hand using these players
+        local_hand = cribbage.Hand(players=players)
+        local_hand.go = 1 # one player has already said go
+        stack = [cribbage.card_from_string(s) for s in ["JD","1S","KC"]]
+        local_hand.stack = stack
+        i = 0
+        local_hand.turn(i)
+        self.assertEqual(local_hand.stack, stack) # no card was played
+        self.assertEqual(local_hand.players[i].score, 1) # but the player was awarded one point
+
+    def test_turn_no_play(self):
+        """Player is awarded a point for the go"""
+        # build players' hands
+        hand_strings = [
+            ["KD", "QD", "1D", "9D"],
+            ["JH", "1S", "2H", "3S"],
+        ]
+        players = []
+        for i, hand_string in enumerate(hand_strings):
+            player_hand = [cribbage.card_from_string(s) for s in hand_string]
+            player = cribbage.Player(name=f"Player {i + 1}", hand=player_hand)
+            players.append(player)
+        # build a hand using these players
+        local_hand = cribbage.Hand(players=players)
+        stack = [cribbage.card_from_string(s) for s in ["JD","1S","KC"]]
+        local_hand.stack = stack
+        i = 0
+        local_hand.turn(i)
+        self.assertEqual(local_hand.stack, stack) # no card was played
+        self.assertEqual(local_hand.players[i].score, 0) # No points awarded
+
     def test_count(self):
         """Points in hands and the crib are awarded for two players"""
         # Note that testing 3 players would involve a random card
