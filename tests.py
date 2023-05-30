@@ -477,6 +477,29 @@ class TestCribbageHand(unittest.TestCase):
         hand.trick()
         self.assertEqual(hand.players[0].score, 2) # player was awarded two points for the go + 31
 
+    def test_trick_2(self):
+        """Two players put down cards in sequence"""
+        # build two players' hands
+        hand_strings = [
+            ["JD", "6D", "1D", "AS"],
+            ["5S", "QD", "6D", "2S"],
+        ]
+        players = []
+        for hand_string in hand_strings:
+            player = cribbage.Player(hand=[cribbage.card_from_string(s) for s in hand_string])
+            players.append(player)
+        hand = cribbage.Hand(players)
+        # play a trick with both players
+        hand.trick()
+        # assess the order is what is expected
+        stack_strings = [card.name for card in hand.stack]
+        expected_strings = ["5S", "JD", "QD", "6D"]
+        self.assertEqual(stack_strings, expected_strings)
+
+    @unittest.SkipTest
+    def test_trick_2x(self):
+        """Second hand between two players is in sequence"""
+
     @unittest.SkipTest
     def test_tricks(self):
         """Test that all tricks get played out"""
