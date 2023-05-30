@@ -1,4 +1,5 @@
 # Cribbage!
+![](coverage.svg)
 
 I love cribbage. But no one will play with me, so I'm writing a silly vanity project to build lots of classes.
 
