@@ -5,19 +5,22 @@ import unittest
 
 import cribbage
 
+
 class TestStrategySequence(unittest.TestCase):
     """Sequence Strategy works as intended"""
 
     def setUp(self) -> None:
-        self.hand_strings = ['KD', '8C', '4H', 'QS', '3C']
+        self.hand_strings = ["KD", "8C", "4H", "QS", "3C"]
         self.hand = [cribbage.card_from_string(s) for s in self.hand_strings]
         return super().setUp()
-    
+
     def test_pick_sequence(self):
         self.hand, played = cribbage.pick_sequence(self.hand, [], 5)
-        self.assertEqual(self.hand, []) # hand is empty
+        self.assertEqual(self.hand, [])  # hand is empty
         played_values = [card.name for card in played]
-        self.assertEqual(self.hand_strings, played_values) # all cards were played in sequence
+        self.assertEqual(
+            self.hand_strings, played_values
+        )  # all cards were played in sequence
 
     def test_play_sequence(self):
         card = cribbage.play_sequence(self.hand, [], [])
@@ -35,74 +38,75 @@ class TestStrategySequence(unittest.TestCase):
         self.assertEqual(len(self.hand), 5)
         self.assertIsNone(card)
 
+
 class TestCribbageScore(unittest.TestCase):
-    '''Test suite for possible hands'''
+    """Test suite for possible hands"""
 
     def test_zero(self):
-        hand = ['KD', '8C', 'AH', 'QS', '3C']
+        hand = ["KD", "8C", "AH", "QS", "3C"]
         cards = []
         for card in hand:
             cards.append(cribbage.card_from_string(card))
         self.assertEqual(0, cribbage.score(cards))
 
     def test_fifteen(self):
-        hand = ['8H', '7H', 'KS', 'QH', '1H']
+        hand = ["8H", "7H", "KS", "QH", "1H"]
         cards = []
         for card in hand:
             cards.append(cribbage.card_from_string(card))
         self.assertEqual(2, cribbage.score(cards))
 
     def test_pair(self):
-        hand = ['AH', '1D', '1H', '6H', '2C']
+        hand = ["AH", "1D", "1H", "6H", "2C"]
         cards = []
         for card in hand:
             cards.append(cribbage.card_from_string(card))
         self.assertEqual(2, cribbage.score(cards))
 
     def test_tripple(self):
-        hand = ['1S', '1D', '1H', '6H', '2C']
+        hand = ["1S", "1D", "1H", "6H", "2C"]
         cards = []
         for card in hand:
             cards.append(cribbage.card_from_string(card))
         self.assertEqual(6, cribbage.score(cards))
 
     def test_quad(self):
-        hand = ['1S', '1D', '1H', '6H', '1C']
+        hand = ["1S", "1D", "1H", "6H", "1C"]
         cards = []
         for card in hand:
             cards.append(cribbage.card_from_string(card))
         self.assertEqual(12, cribbage.score(cards))
-    
+
     def test_run_3(self):
-        hand = ['4S', '8D', 'JH', 'QH', 'KC']
+        hand = ["4S", "8D", "JH", "QH", "KC"]
         cards = []
         for card in hand:
             cards.append(cribbage.card_from_string(card))
         self.assertEqual(3, cribbage.score(cards))
-    
+
     def test_run_4(self):
-        hand = ['7S', '1D', 'JH', 'QH', 'KC']
+        hand = ["7S", "1D", "JH", "QH", "KC"]
         cards = []
         for card in hand:
             cards.append(cribbage.card_from_string(card))
         self.assertEqual(4, cribbage.score(cards))
-    
+
     def test_run_5(self):
-        hand = ['9S', '1D', 'JH', 'QH', 'KC']
+        hand = ["9S", "1D", "JH", "QH", "KC"]
         cards = []
         for card in hand:
             cards.append(cribbage.card_from_string(card))
         self.assertEqual(5, cribbage.score(cards))
-    
+
     def test_flush_4(self):
-        hand = ['9S', '1S', 'QS', 'KS']
+        hand = ["9S", "1S", "QS", "KS"]
         cards = []
         for card in hand:
             cards.append(cribbage.card_from_string(card))
         self.assertEqual(4, cribbage.score(cards))
-    
+
     def test_flush_5(self):
-        hand = ['9S', '1S', 'QS', 'KS', '7S']
+        hand = ["9S", "1S", "QS", "KS", "7S"]
         cards = []
         for card in hand:
             cards.append(cribbage.card_from_string(card))
@@ -110,15 +114,15 @@ class TestCribbageScore(unittest.TestCase):
         self.assertEqual(5, cribbage.score(cards, cut))
 
     def test_his_knobs(self):
-        hand = ['JC', '8C', 'AH', 'QS', '3C']
+        hand = ["JC", "8C", "AH", "QS", "3C"]
         cards = []
         for card in hand:
             cards.append(cribbage.card_from_string(card))
         cut = cards.pop(-1)
         self.assertEqual(1, cribbage.score(cards, cut))
 
-class TestCribbagePegs(unittest.TestCase):
 
+class TestCribbagePegs(unittest.TestCase):
     def test_fifteen_2(self):
         """Two cards fifteen returns 2"""
         stack = [cribbage.card_from_string(s) for s in ["1S", "5D"]]
@@ -204,6 +208,7 @@ class TestCribbagePegs(unittest.TestCase):
                 hand = [cribbage.card_from_string(s) for s in stacks_strings[i][0]]
                 self.assertEqual(stacks_strings[i][1], cribbage.score_pegs(hand))
 
+
 class TestCribbagePlayer(unittest.TestCase):
     """Test suite for Player class"""
 
@@ -235,7 +240,7 @@ class TestCribbagePlayer(unittest.TestCase):
     def test_score(self):
         score = 42
         player = cribbage.Player()
-        player.score += score # score initiates at zero
+        player.score += score  # score initiates at zero
         self.assertEqual(score, player.score)
 
     def test_hand(self):
@@ -246,14 +251,14 @@ class TestCribbagePlayer(unittest.TestCase):
         player.hand = hand
         self.assertEqual(player.hand, hand)
         # player should also have hand added to seen
-        self.assertCountEqual(player.seen, hand) # order differs
+        self.assertCountEqual(player.seen, hand)  # order differs
 
     def test_see(self):
         deck = cribbage.build_deck()
         seen = cribbage.draw_hand(deck, 1)
 
         player = cribbage.Player()
-        player.see(seen[0]) # also tests that seen is instantiated blank
+        player.see(seen[0])  # also tests that seen is instantiated blank
         self.assertEqual(player.seen, seen)
 
     def test_reshuffle(self):
@@ -296,8 +301,9 @@ class TestCribbagePlayer(unittest.TestCase):
         stack = []
         stack.append(player.play(stack))
 
-        self.assertEqual(len(stack) , 1)
-        self.assertEqual(len(player.hand) , hand_size - 1)
+        self.assertEqual(len(stack), 1)
+        self.assertEqual(len(player.hand), hand_size - 1)
+
 
 class TestCribbageHand(unittest.TestCase):
     """Test suite for Hand class"""
@@ -318,7 +324,7 @@ class TestCribbageHand(unittest.TestCase):
             "players": list,
             "deck": list,
             "crib": list,
-            #"the_cut": None, # not instantiated on init
+            # "the_cut": None, # not instantiated on init
             "stack": list,
         }
         for key in attributes:
@@ -413,9 +419,11 @@ class TestCribbageHand(unittest.TestCase):
                 local_hand.deal()
                 local_hand.collect()
                 for player in local_hand.players:
-                    self.assertEqual(len(player.hand), 4) # each player has 4 cards
-                self.assertEqual(len(local_hand.crib), 4) # the crib has 4 cards
-                self.assertEqual(len(local_hand.deck), 52 - (len(local_hand.players) + 1) * 4) # the rest of the cards are in the deck
+                    self.assertEqual(len(player.hand), 4)  # each player has 4 cards
+                self.assertEqual(len(local_hand.crib), 4)  # the crib has 4 cards
+                self.assertEqual(
+                    len(local_hand.deck), 52 - (len(local_hand.players) + 1) * 4
+                )  # the rest of the cards are in the deck
 
     def test_award(self):
         player = self.hand.players[0]
@@ -443,7 +451,9 @@ class TestCribbageHand(unittest.TestCase):
         # build a hand using these players
         local_hand = cribbage.Hand(players=players)
         local_hand.turn(0)
-        self.assertEqual(str(local_hand.stack), "[KD]") # the first player plays their first card
+        self.assertEqual(
+            str(local_hand.stack), "[KD]"
+        )  # the first player plays their first card
 
     def test_turn_go(self):
         """Player is awarded a point for the go"""
@@ -459,13 +469,15 @@ class TestCribbageHand(unittest.TestCase):
             players.append(player)
         # build a hand using these players
         local_hand = cribbage.Hand(players=players)
-        local_hand.go = 1 # one player has already said go
-        stack = [cribbage.card_from_string(s) for s in ["JD","1S","KC"]]
+        local_hand.go = 1  # one player has already said go
+        stack = [cribbage.card_from_string(s) for s in ["JD", "1S", "KC"]]
         local_hand.stack = stack
         i = 0
         local_hand.turn(i)
-        self.assertEqual(local_hand.stack, stack) # no card was played
-        self.assertEqual(local_hand.players[i].score, 1) # but the player was awarded one point
+        self.assertEqual(local_hand.stack, stack)  # no card was played
+        self.assertEqual(
+            local_hand.players[i].score, 1
+        )  # but the player was awarded one point
 
     def test_turn_no_play(self):
         """Player is awarded a point for the go"""
@@ -481,12 +493,12 @@ class TestCribbageHand(unittest.TestCase):
             players.append(player)
         # build a hand using these players
         local_hand = cribbage.Hand(players=players)
-        stack = [cribbage.card_from_string(s) for s in ["JD","1S","KC"]]
+        stack = [cribbage.card_from_string(s) for s in ["JD", "1S", "KC"]]
         local_hand.stack = stack
         i = 0
         local_hand.turn(i)
-        self.assertEqual(local_hand.stack, stack) # no card was played
-        self.assertEqual(local_hand.players[i].score, 0) # No points awarded
+        self.assertEqual(local_hand.stack, stack)  # no card was played
+        self.assertEqual(local_hand.players[i].score, 0)  # No points awarded
 
     def test_count(self):
         """Points in hands and the crib are awarded for two players"""
@@ -524,10 +536,16 @@ class TestCribbageHand(unittest.TestCase):
         hand = cribbage.Hand(players=players)
         hand.trick()
         stack_strings = [card.name for card in hand.stack]
-        self.assertEqual(stack_strings, hand_strings[0:3]) # stack has just first three cards
+        self.assertEqual(
+            stack_strings, hand_strings[0:3]
+        )  # stack has just first three cards
         end_hand_strings = [card.name for card in hand.players[0].hand]
-        self.assertEqual(end_hand_strings, [hand_strings[3]]) # hand has only one card remaining
-        self.assertEqual(hand.players[0].score, 1) # player was awarded one point for the go
+        self.assertEqual(
+            end_hand_strings, [hand_strings[3]]
+        )  # hand has only one card remaining
+        self.assertEqual(
+            hand.players[0].score, 1
+        )  # player was awarded one point for the go
 
     def test_trick_go_2(self):
         """Player is awarded 2 points for exactly 31"""
@@ -536,7 +554,9 @@ class TestCribbageHand(unittest.TestCase):
         players = [cribbage.Player(hand=player_hand)]
         hand = cribbage.Hand(players=players)
         hand.trick()
-        self.assertEqual(hand.players[0].score, 2) # player was awarded two points for the go + 31
+        self.assertEqual(
+            hand.players[0].score, 2
+        )  # player was awarded two points for the go + 31
 
     def test_trick_2(self):
         """Two players put down cards in sequence"""
@@ -547,7 +567,9 @@ class TestCribbageHand(unittest.TestCase):
         ]
         players = []
         for hand_string in hand_strings:
-            player = cribbage.Player(hand=[cribbage.card_from_string(s) for s in hand_string])
+            player = cribbage.Player(
+                hand=[cribbage.card_from_string(s) for s in hand_string]
+            )
             players.append(player)
         hand = cribbage.Hand(players)
         # play a trick with both players
@@ -566,7 +588,9 @@ class TestCribbageHand(unittest.TestCase):
         ]
         players = []
         for hand_string in hand_strings:
-            player = cribbage.Player(hand=[cribbage.card_from_string(s) for s in hand_string])
+            player = cribbage.Player(
+                hand=[cribbage.card_from_string(s) for s in hand_string]
+            )
             players.append(player)
         hand = cribbage.Hand(players)
         # play a trick with both players
@@ -588,7 +612,9 @@ class TestCribbageHand(unittest.TestCase):
         ]
         players = []
         for hand_string in hand_strings:
-            player = cribbage.Player(hand=[cribbage.card_from_string(s) for s in hand_string])
+            player = cribbage.Player(
+                hand=[cribbage.card_from_string(s) for s in hand_string]
+            )
             players.append(player)
         hand = cribbage.Hand(players)
         # play out both trick with both players
@@ -598,8 +624,8 @@ class TestCribbageHand(unittest.TestCase):
         expected_strings = ["6D", "1D", "2S", "AS"]
         self.assertEqual(stack_strings, expected_strings)
 
-class TestCribbageGame(unittest.TestCase):
 
+class TestCribbageGame(unittest.TestCase):
     def setUp(self) -> None:
         self.game = cribbage.Game(n=4)
         return super().setUp()
@@ -640,6 +666,7 @@ class TestCribbageGame(unittest.TestCase):
         self.game.play()
         self.assertIsInstance(self.game.results, dict)
         self.assertIsNotNone(self.game.results)
+
 
 if __name__ == "__main__":
     unittest.main()
