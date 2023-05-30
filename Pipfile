@@ -1,0 +1,18 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+
+[dev-packages]
+black = "*"
+coverage = "*"
+coverage-badge = "*"
+
+[requires]
+python_version = "3.11"
+python_full_version = "3.11.2"
+
+[scripts]
+coverage = "zsh -c 'python -m coverage run tests.py && coverage-badge -fo coverage.svg'"

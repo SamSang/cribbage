@@ -10,47 +10,48 @@ from itertools import permutations
 from logger import logger
 
 faces = {
-        '10': {
-            'seq': 1,
-            'value': 1,
-            'letter': '1',
-        },
-        'Jack': {
-            'seq': 11,
-            'value': 10,
-            'letter': 'J',
-        },
-        'Queen': {
-            'seq': 12,
-            'value': 10,
-            'letter': 'Q',
-        },
-        'King': {
-            'seq': 13,
-            'value': 10,
-            'letter': 'K',
-        },
-        'Ace': {
-            'seq': 1,
-            'value': 1,
-            'letter': 'A',
-        },
-    }
-
-suits = {
-    'Spade': {
-        'letter': 'S',
+    "10": {
+        "seq": 1,
+        "value": 1,
+        "letter": "1",
     },
-    'Heart': {
-        'letter': 'H',
+    "Jack": {
+        "seq": 11,
+        "value": 10,
+        "letter": "J",
     },
-    'Diamond': {
-        'letter': 'D',
+    "Queen": {
+        "seq": 12,
+        "value": 10,
+        "letter": "Q",
     },
-    'Club': {
-        'letter': 'C',
+    "King": {
+        "seq": 13,
+        "value": 10,
+        "letter": "K",
+    },
+    "Ace": {
+        "seq": 1,
+        "value": 1,
+        "letter": "A",
     },
 }
+
+suits = {
+    "Spade": {
+        "letter": "S",
+    },
+    "Heart": {
+        "letter": "H",
+    },
+    "Diamond": {
+        "letter": "D",
+    },
+    "Club": {
+        "letter": "C",
+    },
+}
+
 
 class Card:
     def __init__(self, rank: str, suit: str, seq: int, value: int):
@@ -59,8 +60,10 @@ class Card:
         self.seq = seq
         self.value = value
         self.name = self.rank[0] + self.suit[0]
+
     def __repr__(self):
         return self.name
+
 
 def build_deck() -> list:
     """
@@ -69,9 +72,23 @@ def build_deck() -> list:
     """
     deck = list()
 
-    suits = ['Spade', 'Heart', 'Diamond', 'Club']
+    suits = ["Spade", "Heart", "Diamond", "Club"]
 
-    ranks = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King']
+    ranks = [
+        "Ace",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "Jack",
+        "Queen",
+        "King",
+    ]
 
     for suit in suits:
         for rank in ranks:
@@ -79,26 +96,30 @@ def build_deck() -> list:
             deck.append(card)
     return deck
 
+
 def build_card(rank: str, suit: str) -> Card:
     """Make a card from the rank and suit"""
     try:
         seq = int(rank)
         value = int(rank)
     except ValueError:
-        seq = faces[rank]['seq']
-        value = faces[rank]['value']
+        seq = faces[rank]["seq"]
+        value = faces[rank]["value"]
     return Card(rank, suit, seq, value)
+
 
 def build_letter_function(letter):
     def get_letter(pair) -> bool:
         """function to filter a dict by the child key `letter`"""
         key, value = pair
         try:
-            if value['letter'] == letter:
+            if value["letter"] == letter:
                 return True
         except:
             return False
+
     return get_letter
+
 
 def card_from_string(card_string) -> Card:
     """Make a card given the two letter abbreviation"""
@@ -115,14 +136,16 @@ def card_from_string(card_string) -> Card:
         rank = rank_letter
     return build_card(rank, suit)
 
+
 def build_hand() -> list:
     """Build a list of card objects given user input"""
-    cards_text = input('Enter cards: ')
-    cards_split = cards_text.split(' ')
+    cards_text = input("Enter cards: ")
+    cards_split = cards_text.split(" ")
     cards = list()
     for card in cards_split:
         cards.append(card_from_string(card))
     return cards
+
 
 def draw_hand(deck: list, n=5) -> list:
     """Choose n random cards from the deck"""
@@ -133,9 +156,11 @@ def draw_hand(deck: list, n=5) -> list:
         i += 1
     return hand
 
+
 """
 Constituent functions of scoring a cribbage hand
 """
+
 
 def add_cards(cards: typing.List[Card]) -> int:
     """
@@ -145,6 +170,7 @@ def add_cards(cards: typing.List[Card]) -> int:
     for card in cards:
         values.append(card.value)
     return sum(values)
+
 
 def consecutive_cards(cards: typing.List[Card]) -> bool:
     """returns true if all cards in the list are consecutive"""
@@ -156,6 +182,7 @@ def consecutive_cards(cards: typing.List[Card]) -> bool:
         is_consecutive = True
     return is_consecutive
 
+
 def score_fifteen(cards: typing.List[Card]) -> int:
     """
     Score when a set of cards = 15
@@ -164,9 +191,10 @@ def score_fifteen(cards: typing.List[Card]) -> int:
     for count_cards in range(len(cards) + 1):
         for subset in combinations(cards, count_cards):
             if add_cards(subset) == 15:
-                logger.debug(f'15 two! {subset}')
+                logger.debug(f"15 two! {subset}")
                 points += 2
     return points
+
 
 def score_pair(cards: typing.List[Card]) -> int:
     """
@@ -175,9 +203,10 @@ def score_pair(cards: typing.List[Card]) -> int:
     points = 0
     for subset in combinations(cards, 2):
         if len(subset) == 2 and subset[0].rank == subset[1].rank:
-            logger.debug(f'A pair in there! {subset}')
+            logger.debug(f"A pair in there! {subset}")
             points += 2
     return points
+
 
 def score_seq(cards: typing.List[Card]) -> int:
     """
@@ -196,17 +225,19 @@ def score_seq(cards: typing.List[Card]) -> int:
     for sequence in sequences:
         unique = True
         for i in range(len(unique_sequences)):
-            #print('compare', sequence, 'to', unique_sequences[i])
-            if set(sequence).issuperset(unique_sequences[i]): # run is inside this sequence
+            # print('compare', sequence, 'to', unique_sequences[i])
+            if set(sequence).issuperset(
+                unique_sequences[i]
+            ):  # run is inside this sequence
                 # add the difference between the two to the existing sequence
-                #print('add', set(sequence), 'to', unique_sequences[i])
+                # print('add', set(sequence), 'to', unique_sequences[i])
                 values_to_add = list(set(sequence).difference(unique_sequences[i]))
                 for value_to_add in values_to_add:
                     unique_sequences[i].add(value_to_add)
             if not unique_sequences[i].issubset(set(sequence)):
                 unique = False
         if unique:
-            #print('add sequence', set(sequence))
+            # print('add sequence', set(sequence))
             unique_sequences.append(set(sequence))
     # tally points from sequential sets
     unique_sequences_set = set(frozenset(s) for s in unique_sequences)
@@ -215,6 +246,7 @@ def score_seq(cards: typing.List[Card]) -> int:
         logger.debug(f"{list(unique_sequence)} for {points} points")
     return points
 
+
 def score_flush(hand: typing.List[Card], cut: Card) -> int:
     # check for a flush
     points = 0
@@ -222,23 +254,25 @@ def score_flush(hand: typing.List[Card], cut: Card) -> int:
     for i in range(len(hand)):
         suits.append(hand[i].suit)
     if len(list(set(suits))) == 1:
-        logger.debug('Flush!')
+        logger.debug("Flush!")
         points += len(hand)
         # check if we get an extra point for the cut matching the flush
         if cut:
             if cut.suit == suits[0]:
-                logger.debug('(including the cut)')
+                logger.debug("(including the cut)")
                 points += 1
     return points
+
 
 def score_cut(hand: typing.List[Card], cut: Card) -> int:
     # check if the hand has a jack matching the suit of the card in the cut
     if cut:
         for card in hand:
-            if card.rank == 'Jack' and card.suit == cut.suit:
-                logger.debug('Jack in the suit!')
+            if card.rank == "Jack" and card.suit == cut.suit:
+                logger.debug("Jack in the suit!")
                 return 1
     return 0
+
 
 def score(hand: typing.List[Card], cut: Card = None) -> int:
     """
@@ -255,6 +289,7 @@ def score(hand: typing.List[Card], cut: Card = None) -> int:
     score += score_cut(hand, cut)
     return score
 
+
 def peg_fifteen(stack: typing.List[Card]) -> int:
     """If the stack totals 15, return 2, else 0"""
     points = 0
@@ -265,6 +300,7 @@ def peg_fifteen(stack: typing.List[Card]) -> int:
         points = 2
     return points
 
+
 def peg_pairs(stack: typing.List[Card]) -> int:
     """
     Return n(n-1) for n > 1 where n is the number of matching ranks
@@ -272,16 +308,18 @@ def peg_pairs(stack: typing.List[Card]) -> int:
     points = 0
     n = len(stack)
     matching = True
-    for i in range(1, n): # doesn't interate for 1
+    for i in range(1, n):  # doesn't interate for 1
         if stack[i - 1].rank != stack[i].rank:
             matching = False
     if matching:
         points = n * (n - 1)
     return points
 
+
 def get_seq(card: Card):
     """Helper function to sort a list of cards"""
     return card.seq
+
 
 def peg_seq(stack: typing.List[Card]) -> int:
     """
@@ -293,6 +331,7 @@ def peg_seq(stack: typing.List[Card]) -> int:
         points = len(stack)
     return points
 
+
 def pegs_packs(stack: list) -> list:
     """
     Return the sets of cards to consider in the pegs
@@ -303,12 +342,14 @@ def pegs_packs(stack: list) -> list:
         packs.append(stack[i:n])
     return packs
 
+
 def peg_31(stack: typing.List[Card]) -> int:
     """Return 1 if stack totals 31"""
     points = 0
     if sum(card.value for card in stack) == 31:
         points = 1
     return points
+
 
 def score_pegs(stack: typing.List[Card]) -> int:
     """
@@ -335,6 +376,7 @@ def score_pegs(stack: typing.List[Card]) -> int:
     points += peg_31(stack)
     return points
 
+
 """
 Strategies for the Player class to use
 
@@ -349,33 +391,32 @@ pegs will be a wrapper that screens possible cards
 for the pegs strategy
 """
 
+
 def pick_sequence(
-        hand: typing.List[Card],
-        seen: typing.List[Card],
-        n: int
-    ) -> typing.Tuple[typing.List[Card], typing.List[Card]]:
+    hand: typing.List[Card], seen: typing.List[Card], n: int
+) -> typing.Tuple[typing.List[Card], typing.List[Card]]:
     """Choose next sequence cards"""
     chosen = []
     for i in range(n):
         chosen.append(hand.pop(0))
     return hand, chosen
 
+
 def play_sequence(
-        possible: typing.List[Card],
-        seen: typing.List[Card],
-        stack: typing.List[Card]
-    ) -> Card:
+    possible: typing.List[Card], seen: typing.List[Card], stack: typing.List[Card]
+) -> Card:
     """Choose next card in sequence, or return an empty list"""
     possible, card = pick_sequence(possible, None, 1)
     return card[0]
 
+
 def pegs(
-        hand: typing.List[Card],
-        seen: typing.List[Card],
-        stack: typing.List[Card],
-        choose = play_sequence,
-        stack_max = 31
-    ) -> typing.Tuple[typing.List[Card], Card]:
+    hand: typing.List[Card],
+    seen: typing.List[Card],
+    stack: typing.List[Card],
+    choose=play_sequence,
+    stack_max=31,
+) -> typing.Tuple[typing.List[Card], Card]:
     """Select a card to play on the stack"""
     stack_total = sum([card.value for card in stack])
     diff = stack_max - stack_total
@@ -390,8 +431,15 @@ def pegs(
     except IndexError:
         return hand, None
 
+
 class Player(object):
-    def __init__(self, name = "Player 0", hand: typing.List[Card] = None, strategy_hand = pick_sequence, strategy_pegs = play_sequence) -> None:
+    def __init__(
+        self,
+        name="Player 0",
+        hand: typing.List[Card] = None,
+        strategy_hand=pick_sequence,
+        strategy_pegs=play_sequence,
+    ) -> None:
         self.name = name
         self.score = 0
         if not hand:
@@ -405,14 +453,16 @@ class Player(object):
         self.strategy_pegs = strategy_pegs
 
     def __repr__(self):
-        return str({
-            "name": self.name,
-            "score": self.score,
-            "hand": self.hand,
-            #"seen": self.seen,
-            "strat_hand": self.strategy_hand.__name__,
-            "strat_pegs": self.strategy_pegs.__name__,
-        })
+        return str(
+            {
+                "name": self.name,
+                "score": self.score,
+                "hand": self.hand,
+                # "seen": self.seen,
+                "strat_hand": self.strategy_hand.__name__,
+                "strat_pegs": self.strategy_pegs.__name__,
+            }
+        )
 
     def see(self, card: Card) -> None:
         """
@@ -423,7 +473,7 @@ class Player(object):
     @property
     def hand(self):
         return self._hand
-    
+
     @hand.setter
     def hand(self, value):
         self._hand = value
@@ -459,18 +509,24 @@ class Player(object):
         self.hand, card = pegs(self.hand, self.seen, stack, self.strategy_pegs)
         return card
 
+
 class WinCondition(Exception):
     """Raised when a player has won"""
+
     # Using this exception to halt the program whenever a player wins
     def __init__(self, players: typing.List[Player], *args: object) -> None:
         super().__init__(*args)
         self.players = players
 
+
 class Hand(object):
     """
     Playing out one hand of cribbage
     """
-    def __init__(self, players: typing.List[Player], deck: typing.List[Card] = [], seq = 0, win = 121) -> None:
+
+    def __init__(
+        self, players: typing.List[Player], deck: typing.List[Card] = [], seq=0, win=121
+    ) -> None:
         self.players = players
         self.deck = deck
         if not deck:
@@ -499,7 +555,7 @@ class Hand(object):
         self.the_cut = self.deck.pop(i)
         self.show(self.the_cut)
         if self.the_cut.rank == "Jack":
-            self.award(self.players[0], 2) # first player is dealer and gets the cut
+            self.award(self.players[0], 2)  # first player is dealer and gets the cut
 
     def deal(self) -> None:
         """
@@ -540,7 +596,7 @@ class Hand(object):
         if player.score >= self.win:
             logger.debug(f"Player {player.name} wins!")
             raise WinCondition(self.players)
-        
+
     def turn(self, i: int) -> None:
         """
         Player at index i adds a card to the stack
@@ -568,7 +624,9 @@ class Hand(object):
             # but dealer plays last
             self.turn_number += 1
             player_index = self.turn_number % n
-            self.turn(player_index) # player takes a turn, which (re)sets the go counter
+            self.turn(
+                player_index
+            )  # player takes a turn, which (re)sets the go counter
 
     def tricks(self) -> None:
         """
@@ -588,14 +646,15 @@ class Hand(object):
 
         self.award(self.players[len(self.players) - 1], score(self.crib, self.the_cut))
 
-class Game(object):
 
-    def __init__(self,
-                 name: str = "",
-                 n: int = 0,
-                 players: typing.List[Player] = [],
-                 win: int = 121
-            ) -> None:
+class Game(object):
+    def __init__(
+        self,
+        name: str = "",
+        n: int = 0,
+        players: typing.List[Player] = [],
+        win: int = 121,
+    ) -> None:
         self.name = name
 
         self.players: typing.List[Player] = []
@@ -645,6 +704,7 @@ class Game(object):
                 "hands": i,
             }
 
+
 def main1():
     players = [Player("1"), Player("2")]
     hand = Hand(players)
@@ -654,11 +714,13 @@ def main1():
     hand.tricks()
     print(hand.players)
 
+
 def main():
     game = Game(n=2)
-    #print(game.players)
+    # print(game.players)
     game.play()
     print(game.results)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
