@@ -704,6 +704,7 @@ class Game(object):
                 "hands": i,
             }
 
+
 def main():
     game = Game(n=2)
     # print(game.players)
