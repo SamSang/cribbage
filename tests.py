@@ -1,12 +1,40 @@
 """
 Tests for the cribbage module
 """
-import typing
 import unittest
 
 import cribbage
 
-@unittest.SkipTest
+class TestStrategySequence(unittest.TestCase):
+    """Sequence Strategy works as intended"""
+
+    def setUp(self) -> None:
+        self.hand_strings = ['KD', '8C', '4H', 'QS', '3C']
+        self.hand = [cribbage.card_from_string(s) for s in self.hand_strings]
+        return super().setUp()
+    
+    def test_pick_sequence(self):
+        self.hand, played = cribbage.pick_sequence(self.hand, [], 5)
+        self.assertEqual(self.hand, []) # hand is empty
+        played_values = [card.name for card in played]
+        self.assertEqual(self.hand_strings, played_values) # all cards were played in sequence
+
+    def test_play_sequence(self):
+        card = cribbage.play_sequence(self.hand, [], [])
+        self.assertEqual(card.name, self.hand_strings[0])
+
+    def test_pegs_play(self):
+        """Play first card at or below stack_max"""
+        self.hand, card = cribbage.pegs(self.hand, [], [], stack_max=8)
+        self.assertEqual(len(self.hand), 4)
+        self.assertEqual("8C", card.name)
+
+    def test_pegs_no_play(self):
+        """Return None when no card can be played"""
+        self.hand, card = cribbage.pegs(self.hand, [], [], stack_max=0)
+        self.assertEqual(len(self.hand), 5)
+        self.assertIsNone(card)
+
 class TestCribbageScore(unittest.TestCase):
     '''Test suite for possible hands'''
 
@@ -74,7 +102,7 @@ class TestCribbageScore(unittest.TestCase):
         self.assertEqual(4, cribbage.score(cards))
     
     def test_flush_5(self):
-        hand = ['9S', '1S', 'QS', 'KS', '6S']
+        hand = ['9S', '1S', 'QS', 'KS', '7S']
         cards = []
         for card in hand:
             cards.append(cribbage.card_from_string(card))
@@ -89,6 +117,93 @@ class TestCribbageScore(unittest.TestCase):
         cut = cards.pop(-1)
         self.assertEqual(1, cribbage.score(cards, cut))
 
+class TestCribbagePegs(unittest.TestCase):
+
+    def test_fifteen_2(self):
+        """Two cards fifteen returns 2"""
+        stack = [cribbage.card_from_string(s) for s in ["1S", "5D"]]
+        self.assertEqual(cribbage.peg_fifteen(stack), 2)
+
+    def test_fifteen_3(self):
+        """Three cards fifteen returns 2"""
+        stack = [cribbage.card_from_string(s) for s in ["7S", "7D", "AH"]]
+        self.assertEqual(cribbage.peg_fifteen(stack), 2)
+
+    def test_fifteen_0(self):
+        """Two cards 16 returns 0"""
+        stack = [cribbage.card_from_string(s) for s in ["8S", "8D"]]
+        self.assertEqual(cribbage.peg_fifteen(stack), 0)
+
+    def test_pairs_0(self):
+        """Stacks of 0-4 non-matching cards"""
+        stacks_strings = [
+            ["7S"],
+            ["7S", "AH"],
+            ["7S", "7D", "AH"],
+            ["8D", "9H", "3C", "2D"],
+        ]
+        for stack_string in stacks_strings:
+            with self.subTest(stack_string=stack_string):
+                hand = [cribbage.card_from_string(s) for s in stack_string]
+                self.assertEqual(0, cribbage.peg_pairs(hand))
+
+    def test_pairs(self):
+        """Stacks of 0-4 matching cards"""
+        stacks_strings = [
+            (["7S"], 0),
+            (["7S", "7H"], 2),
+            (["7S", "7D", "7H"], 6),
+            (["7S", "7D", "7H", "7C"], 12),
+        ]
+        for i in range(len(stacks_strings)):
+            with self.subTest(i=i):
+                hand = [cribbage.card_from_string(s) for s in stacks_strings[i][0]]
+                self.assertEqual(stacks_strings[i][1], cribbage.peg_pairs(hand))
+
+    def test_seq(self):
+        """Stacks of sequences"""
+        stacks_strings = [
+            (["7S"], 0),
+            (["7S", "8H"], 0),
+            (["7S", "7D", "7H"], 0),
+            (["6S", "7D", "8H"], 3),
+            (["6S", "7D", "8H", "9C"], 4),
+            (["6S", "8H", "7D", "9C"], 4),
+        ]
+        for i in range(len(stacks_strings)):
+            with self.subTest(i=i):
+                hand = [cribbage.card_from_string(s) for s in stacks_strings[i][0]]
+                self.assertEqual(stacks_strings[i][1], cribbage.peg_seq(hand))
+
+    def test_pegs_packs(self):
+        """Produce expected lists"""
+        stack = ["6S", "8H", "7D", "9C", "AH"]
+        expected = [
+            ["6S", "8H", "7D", "9C", "AH"],
+            ["8H", "7D", "9C", "AH"],
+            ["7D", "9C", "AH"],
+            ["9C", "AH"],
+        ]
+        result = cribbage.pegs_packs(stack)
+        self.assertEqual(expected, result)
+
+    def test_score_pegs(self):
+        """Counts pegs of various stacks"""
+        stacks_strings = [
+            (["7S"], 0),
+            (["7S", "8H"], 2),
+            (["7S", "7D", "7H"], 6),
+            (["7S", "4D", "2H"], 0),
+            (["6S", "8H", "7D"], 5),
+            (["6S", "8H", "7D", "9C"], 4),
+            (["7S", "8H", "6D", "9C"], 6),
+            (["7S", "8H", "6D", "JC"], 1),
+        ]
+        for i in range(len(stacks_strings)):
+            with self.subTest(i=i):
+                hand = [cribbage.card_from_string(s) for s in stacks_strings[i][0]]
+                self.assertEqual(stacks_strings[i][1], cribbage.score_pegs(hand))
+
 class TestCribbagePlayer(unittest.TestCase):
     """Test suite for Player class"""
 
@@ -98,7 +213,7 @@ class TestCribbagePlayer(unittest.TestCase):
         attributes = {
             "name": str,
             "score": int,
-            #"hand": typing.List[object], # can't test this type
+            "hand": list,
             "seen": list,
             "_seen": set,
             "strategy_hand": "function",
@@ -189,23 +304,21 @@ class TestCribbageHand(unittest.TestCase):
 
     def setUp(self) -> None:
         # add players to hand
-        self.deck = cribbage.build_deck()
         self.players = [
             cribbage.Player("Player 1"),
             cribbage.Player("Player 2"),
             cribbage.Player("Player 3"),
         ]
-        self.hand = cribbage.Hand(self.players, self.deck)
+        self.hand = cribbage.Hand(self.players)
 
     def test_attrs(self):
         """Has all given attributes"""
-        # Maybe instantiate the Hand
         attributes = {
             "seq": int,
             "players": list,
             "deck": list,
             "crib": list,
-            "the_cut": cribbage.Card,
+            #"the_cut": None, # not instantiated on init
             "stack": list,
         }
         for key in attributes:
@@ -220,11 +333,30 @@ class TestCribbageHand(unittest.TestCase):
         self.assertCountEqual(self.hand.players, self.players)
 
     def test_deck(self):
-        # there are 52 cards including deck, crib and hands
-        self.assertEqual(len([self.hand.the_cut]), 1)
+        """There are 52 cards including deck"""
+        self.assertIsNone(self.hand.the_cut)
+        self.assertEqual(len(self.hand.deck), 52)
+
+    def test_show(self):
+        """Show each player one card"""
+        card = cribbage.card_from_string("8S")
+        self.hand.show(card)
+        for player in self.hand.players:
+            self.assertIn(card, player.seen)
 
     def test_cut(self):
+        """The cut starts empty, then one card is taken out to be the cut."""
+        n = 11
+        knobs = [cribbage.card_from_string("JH") for i in range(n)]
+        self.assertIsNone(self.hand.the_cut)
+        self.hand.deck = knobs
+        self.hand.cut()
         self.assertIsInstance(self.hand.the_cut, cribbage.Card)
+        self.assertEqual(len(self.hand.deck), n - 1)
+        for player in self.hand.players:
+            self.assertIn(self.hand.the_cut, player.seen)
+        # two points awarded
+        self.assertEqual(self.hand.players[0].score, 2)
 
     def test_count(self):
         """
@@ -239,9 +371,7 @@ class TestCribbageHand(unittest.TestCase):
         player_3_strings = ["AS", "AC"]
         player_3_hand = [cribbage.card_from_string(s) for s in player_3_strings]
 
-        # clear out the cut for ease
-        #self.hand.the_cut = cribbage.card_from_string("AH")
-        self.hand.the_cut = None # TODO Implement counting the cut
+        self.hand.the_cut = cribbage.card_from_string("AH")
         self.hand.crib = crib
         self.hand.players[0].count_hand = player_1_hand
         self.hand.players[1].count_hand = player_2_hand
@@ -250,10 +380,7 @@ class TestCribbageHand(unittest.TestCase):
         self.hand.count()
 
         # results with cut
-        #result = [3, 6, 8]
-
-        # results without cut
-        result = [0, 6, 2]
+        result = [3, 6, 8]
 
         for i in range(0, 3):
             with self.subTest(i=i):
@@ -261,28 +388,258 @@ class TestCribbageHand(unittest.TestCase):
 
     def test_deal(self):
         """
-        All hands have four cards
+        All hands have original number of cards
+        4 + (4 // n)
         """
         for n in range(2, 5):
             with self.subTest(n=n):
-                local_deck = cribbage.build_deck()
+                hand_size = 4 + (4 // n)
+                players = []
+                for i in range(n):
+                    players.append(cribbage.Player(f"Player {i + 1}"))
+                local_hand = cribbage.Hand(players=players)
+                local_hand.deal()
+                for player in local_hand.players:
+                    self.assertEqual(len(player.hand), hand_size)
+
+    def test_collect(self):
+        """After collecting crib, all hands and the crib have 4 cards"""
+        for n in range(2, 5):
+            with self.subTest(n=n):
                 players = []
                 for i in range(1, n):
                     players.append(cribbage.Player(f"Player {i}"))
-                local_hand = cribbage.Hand(players, local_deck)
+                local_hand = cribbage.Hand(players=players)
+                local_hand.deal()
+                local_hand.collect()
                 for player in local_hand.players:
-                    self.assertEqual(len(player.hand), 4)
+                    self.assertEqual(len(player.hand), 4) # each player has 4 cards
+                self.assertEqual(len(local_hand.crib), 4) # the crib has 4 cards
+                self.assertEqual(len(local_hand.deck), 52 - (len(local_hand.players) + 1) * 4) # the rest of the cards are in the deck
 
-        in_hand = 0
-        for player in self.hand.players:
-            self.assertEqual(len(player.hand), 4)
-            in_hand += 4
+    def test_award(self):
+        player = self.hand.players[0]
+        self.hand.award(player, 1)
+        self.assertEqual(self.hand.players[0].score, 1)
 
-        self.assertEqual(len(self.hand.crib), 4)
+    def test_award_win(self):
+        """Default win score raises win exception"""
+        player = self.hand.players[0]
+        with self.assertRaises(cribbage.WinCondition):
+            self.hand.award(player, 121)
 
-        in_play = 1 + in_hand + 4
-        self.assertEqual(len(self.hand.deck) + in_play, 52)
+    def test_turn(self):
+        """Player puts a card on the stack"""
+        # build players' hands
+        hand_strings = [
+            ["KD", "QD", "1D", "9D"],
+            ["JH", "1S", "2H", "3S"],
+        ]
+        players = []
+        for i, hand_string in enumerate(hand_strings):
+            player_hand = [cribbage.card_from_string(s) for s in hand_string]
+            player = cribbage.Player(name=f"Player {i + 1}", hand=player_hand)
+            players.append(player)
+        # build a hand using these players
+        local_hand = cribbage.Hand(players=players)
+        local_hand.turn(0)
+        self.assertEqual(str(local_hand.stack), "[KD]") # the first player plays their first card
+
+    def test_turn_go(self):
+        """Player is awarded a point for the go"""
+        # build players' hands
+        hand_strings = [
+            ["KD", "QD", "1D", "9D"],
+            ["JH", "1S", "2H", "3S"],
+        ]
+        players = []
+        for i, hand_string in enumerate(hand_strings):
+            player_hand = [cribbage.card_from_string(s) for s in hand_string]
+            player = cribbage.Player(name=f"Player {i + 1}", hand=player_hand)
+            players.append(player)
+        # build a hand using these players
+        local_hand = cribbage.Hand(players=players)
+        local_hand.go = 1 # one player has already said go
+        stack = [cribbage.card_from_string(s) for s in ["JD","1S","KC"]]
+        local_hand.stack = stack
+        i = 0
+        local_hand.turn(i)
+        self.assertEqual(local_hand.stack, stack) # no card was played
+        self.assertEqual(local_hand.players[i].score, 1) # but the player was awarded one point
+
+    def test_turn_no_play(self):
+        """Player is awarded a point for the go"""
+        # build players' hands
+        hand_strings = [
+            ["KD", "QD", "1D", "9D"],
+            ["JH", "1S", "2H", "3S"],
+        ]
+        players = []
+        for i, hand_string in enumerate(hand_strings):
+            player_hand = [cribbage.card_from_string(s) for s in hand_string]
+            player = cribbage.Player(name=f"Player {i + 1}", hand=player_hand)
+            players.append(player)
+        # build a hand using these players
+        local_hand = cribbage.Hand(players=players)
+        stack = [cribbage.card_from_string(s) for s in ["JD","1S","KC"]]
+        local_hand.stack = stack
+        i = 0
+        local_hand.turn(i)
+        self.assertEqual(local_hand.stack, stack) # no card was played
+        self.assertEqual(local_hand.players[i].score, 0) # No points awarded
+
+    def test_count(self):
+        """Points in hands and the crib are awarded for two players"""
+        # Note that testing 3 players would involve a random card
+        # set the hands for each player
+        hand_strings = [
+            ["KD", "QD", "1D", "9D", "4S", "AD"],
+            ["JH", "1S", "2H", "3S", "4D", "6H"],
+        ]
+        players = []
+        for i, hand_string in enumerate(hand_strings):
+            player_hand = [cribbage.card_from_string(s) for s in hand_string]
+            player = cribbage.Player(name=f"Player {i + 1}", hand=player_hand)
+            players.append(player)
+
+        # build a hand using these players
+        local_hand = cribbage.Hand(players=players)
+        local_hand.the_cut = cribbage.card_from_string("5S")
+        local_hand.collect()
+        local_hand.count()
+
+        # validate the resulting scores
+        scores = [6, 9 + 12]
+        for i in range(len(local_hand.players)):
+            with self.subTest(i=i):
+                self.assertEqual(local_hand.players[i].score, scores[i])
+
+    def test_trick_go_1(self):
+        """Cards get played on the stack
+        One player plays three cards on the stack and is awarded one point for the go.
+        """
+        hand_strings = ["KD", "QD", "1D", "9D"]
+        player_hand = [cribbage.card_from_string(s) for s in hand_strings]
+        players = [cribbage.Player(hand=player_hand)]
+        hand = cribbage.Hand(players=players)
+        hand.trick()
+        stack_strings = [card.name for card in hand.stack]
+        self.assertEqual(stack_strings, hand_strings[0:3]) # stack has just first three cards
+        end_hand_strings = [card.name for card in hand.players[0].hand]
+        self.assertEqual(end_hand_strings, [hand_strings[3]]) # hand has only one card remaining
+        self.assertEqual(hand.players[0].score, 1) # player was awarded one point for the go
+
+    def test_trick_go_2(self):
+        """Player is awarded 2 points for exactly 31"""
+        hand_strings = ["KD", "QD", "1D", "AS"]
+        player_hand = [cribbage.card_from_string(s) for s in hand_strings]
+        players = [cribbage.Player(hand=player_hand)]
+        hand = cribbage.Hand(players=players)
+        hand.trick()
+        self.assertEqual(hand.players[0].score, 2) # player was awarded two points for the go + 31
+
+    def test_trick_2(self):
+        """Two players put down cards in sequence"""
+        # build two players' hands
+        hand_strings = [
+            ["JD", "6D", "1D", "AS"],
+            ["5S", "QD", "6D", "2S"],
+        ]
+        players = []
+        for hand_string in hand_strings:
+            player = cribbage.Player(hand=[cribbage.card_from_string(s) for s in hand_string])
+            players.append(player)
+        hand = cribbage.Hand(players)
+        # play a trick with both players
+        hand.trick()
+        # assess the order is what is expected
+        stack_strings = [card.name for card in hand.stack]
+        expected_strings = ["5S", "JD", "QD", "6D"]
+        self.assertEqual(stack_strings, expected_strings)
+
+    def test_trick_2x(self):
+        """Second hand between two players is in sequence"""
+        # build two players' hands
+        hand_strings = [
+            ["JD", "6D", "1D", "AS"],
+            ["5S", "QD", "6D", "2S"],
+        ]
+        players = []
+        for hand_string in hand_strings:
+            player = cribbage.Player(hand=[cribbage.card_from_string(s) for s in hand_string])
+            players.append(player)
+        hand = cribbage.Hand(players)
+        # play a trick with both players
+        hand.trick()
+        # reset the stack and play the second trick
+        hand.stack = []
+        hand.trick()
+        # assess the order is what is expected
+        stack_strings = [card.name for card in hand.stack]
+        expected_strings = ["6D", "1D", "2S", "AS"]
+        self.assertEqual(stack_strings, expected_strings)
+
+    def test_tricks(self):
+        """Test that all tricks get played out"""
+        # build two players' hands
+        hand_strings = [
+            ["JD", "6D", "1D", "AS"],
+            ["5S", "QD", "6D", "2S"],
+        ]
+        players = []
+        for hand_string in hand_strings:
+            player = cribbage.Player(hand=[cribbage.card_from_string(s) for s in hand_string])
+            players.append(player)
+        hand = cribbage.Hand(players)
+        # play out both trick with both players
+        hand.tricks()
+        # assess the order is what is expected
+        stack_strings = [card.name for card in hand.stack]
+        expected_strings = ["6D", "1D", "2S", "AS"]
+        self.assertEqual(stack_strings, expected_strings)
+
+class TestCribbageGame(unittest.TestCase):
+
+    def setUp(self) -> None:
+        self.game = cribbage.Game(n=4)
+        return super().setUp()
+
+    def test_attrs(self):
+        """Has all given attributes"""
+        attributes = {
+            "name": str,
+            "players": list,
+            "n": int,
+            "deck": list,
+            "dealer_index": int,
+            "win": int,
+            "results": dict,
+        }
+        for key in attributes:
+            val = getattr(self.game, key)
+            self.assertIsInstance(val, attributes[key])
+
+    def test_shuffle(self):
+        """Deck is replentished"""
+        self.game.shuffle()
+        self.assertEqual(len(self.game.deck), 52)
 
     @unittest.SkipTest
-    def test_play(self):
+    def test_skunk(self):
+        """Check if any player got skunked"""
         pass
+
+    def test_advance(self):
+        """Validate how the deal is passed to next player"""
+        self.game.advance()
+        player_names = [player.name for player in self.game.players]
+        self.assertEqual(player_names, ["4", "1", "2", "3"])
+
+    def test_play(self):
+        """Play a sequence of hands with the set of players"""
+        self.game.play()
+        self.assertIsInstance(self.game.results, dict)
+        self.assertIsNotNone(self.game.results)
+
+if __name__ == "__main__":
+    unittest.main()
