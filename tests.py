@@ -346,16 +346,17 @@ class TestCribbageHand(unittest.TestCase):
 
     def test_cut(self):
         """The cut starts empty, then one card is taken out to be the cut."""
-        knobs = [str(i) for i in range(2, 10)] + list(cribbage.faces.keys())
-        #knobs += list(cribbage.faces.keys())
+        n = 11
+        knobs = [cribbage.card_from_string("JH") for i in range(n)]
         self.assertIsNone(self.hand.the_cut)
-        self.hand.cut(knobs)
+        self.hand.deck = knobs
+        self.hand.cut()
         self.assertIsInstance(self.hand.the_cut, cribbage.Card)
-        self.assertEqual(len(self.hand.deck), 51)
+        self.assertEqual(len(self.hand.deck), n - 1)
         for player in self.hand.players:
             self.assertIn(self.hand.the_cut, player.seen)
         # two points awarded
-        self.assertEqual(self.hand.players[len(self.hand.players) - 1].score, 2)
+        self.assertEqual(self.hand.players[0].score, 2)
 
     def test_count(self):
         """

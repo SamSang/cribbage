@@ -490,7 +490,7 @@ class Hand(object):
         for player in self.players:
             player.see(card)
 
-    def cut(self, knobs = ["Jack"]) -> None:
+    def cut(self) -> None:
         """
         Select a card from the deck and place it in the cut
         """
@@ -498,9 +498,8 @@ class Hand(object):
         i = random.randint(5, len(self.deck) - (1 + 5))
         self.the_cut = self.deck.pop(i)
         self.show(self.the_cut)
-        if self.the_cut.rank in knobs:
-            # TODO need to sort out exactly which sequence player is dealer
-            self.award(self.players[len(self.players) - 1], 2)
+        if self.the_cut.rank == "Jack":
+            self.award(self.players[0], 2) # first player is dealer and gets the cut
 
     def deal(self) -> None:
         """
