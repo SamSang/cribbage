@@ -534,17 +534,19 @@ class Hand(object):
         """
         Award a player points and check if they've won
         """
+        if points < 1:
+            return
         logger.debug(f"Award player {player.name} {points} points")
         player.score += points
         if player.score >= self.win:
             logger.debug(f"Player {player.name} wins!")
             raise WinCondition(self.players)
         
-    def turn(self, player: Player) -> int:
+    def turn(self, i: int) -> None:
         """
-        Player adds a card to this stack
-        return points for the play
+        Player at index i adds a card to the stack
         """
+        player = self.players[i]
         points = 0
         card_to_play = player.play(self.stack)
         if not card_to_play:
@@ -556,7 +558,7 @@ class Hand(object):
             self.go = 0
             self.stack.append(card_to_play)
             points = score_pegs(self.stack)
-        return points
+        self.award(player, points)
 
     def new_trick(self) -> None:
         """"""
@@ -567,9 +569,7 @@ class Hand(object):
             # but dealer plays last
             self.turn_number += 1
             player = self.players[self.turn_number % n]
-            points = self.turn(player) # player takes a turn
-            if points:
-                self.award(player, points)
+            self.turn(player) # player takes a turn, which (re)sets the go counter
     
     def trick(self) -> None:
         """
