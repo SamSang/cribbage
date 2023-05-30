@@ -599,41 +599,46 @@ class TestCribbageHand(unittest.TestCase):
 
 class TestCribbageGame(unittest.TestCase):
 
-    @unittest.SkipTest
+    def setUp(self) -> None:
+        self.game = cribbage.Game(n=4)
+        return super().setUp()
+
     def test_attrs(self):
         """Has all given attributes"""
-        game = cribbage.Game()
         attributes = {
-            "seq": int,
-            "n": int,
+            "name": str,
             "players": list,
+            "n": int,
             "deck": list,
-            "dealer": cribbage.Player,
-            "win_threshold": int,
+            "dealer_index": int,
+            "win": int,
+            "results": dict,
         }
         for key in attributes:
-            val = getattr(game, key)
+            val = getattr(self.game, key)
             self.assertIsInstance(val, attributes[key])
 
-    @unittest.SkipTest
     def test_shuffle(self):
-        """Deck is replentished and shuffled"""
-        pass
+        """Deck is replentished"""
+        self.game.shuffle()
+        self.assertEqual(len(self.game.deck), 52)
 
     @unittest.SkipTest
     def test_skunk(self):
         """Check if any player got skunked"""
         pass
 
-    @unittest.SkipTest
     def test_advance(self):
         """Validate how the deal is passed to next player"""
-        pass
+        self.game.advance()
+        player_names = [player.name for player in self.game.players]
+        self.assertEqual(player_names, ["4", "1", "2", "3"])
 
-    @unittest.SkipTest
     def test_play(self):
         """Play a sequence of hands with the set of players"""
-        pass
+        self.game.play()
+        self.assertIsInstance(self.game.results, dict)
+        self.assertIsNotNone(self.game.results)
 
 if __name__ == "__main__":
     unittest.main()

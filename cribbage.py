@@ -592,12 +592,12 @@ class Hand(object):
 class Game(object):
 
     def __init__(self,
-                 seq: int = 0,
+                 name: str = "",
                  n: int = 0,
                  players: typing.List[Player] = [],
                  win: int = 121
             ) -> None:
-        self.seq = seq
+        self.name = name
 
         self.players: typing.List[Player] = []
         if n:
@@ -605,10 +605,12 @@ class Game(object):
                 self.players.append(Player(f"{i+1}"))
         if players:
             self.players = players
+        self.n = len(self.players)
 
+        self.dealer_index: int = 0
         self.deck: typing.List[Card] = []
         self.win = win
-        self.results: typing.List[Player] = []
+        self.results: dict = {}
 
     def shuffle(self):
         """Rebuild the deck of cards"""
@@ -655,7 +657,7 @@ def main1():
 
 def main():
     game = Game(n=2)
-    print(game.players)
+    #print(game.players)
     game.play()
     print(game.results)
 
