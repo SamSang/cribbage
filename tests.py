@@ -1,9 +1,13 @@
 """
 Tests for the cribbage module
 """
+import logging
 import unittest
 
 import cribbage
+import logger
+
+logger.logger.setLevel(logging.ERROR)
 
 
 class TestStrategySequence(unittest.TestCase):

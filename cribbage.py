@@ -591,10 +591,10 @@ class Hand(object):
         """
         if points < 1:
             return
-        logger.debug(f"Award player {player.name} {points} points")
+        logger.info(f"Award player {player.name} {points} points")
         player.score += points
         if player.score >= self.win:
-            logger.debug(f"Player {player.name} wins!")
+            logger.info(f"Player {player.name} wins!")
             raise WinCondition(self.players)
 
     def turn(self, i: int) -> None:
@@ -703,17 +703,6 @@ class Game(object):
                 "players": e.players,
                 "hands": i,
             }
-
-
-def main1():
-    players = [Player("1"), Player("2")]
-    hand = Hand(players)
-    hand.deal()
-    hand.collect()
-    hand.cut()
-    hand.tricks()
-    print(hand.players)
-
 
 def main():
     game = Game(n=2)

@@ -6,7 +6,7 @@ console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.INFO)
 
 file_handler = logging.FileHandler('cribbage.log')
-file_handler.setLevel(logging.DEBUG)
+file_handler.setLevel(logging.INFO)
 
 log_format = logging.Formatter('%(name)s - %(message)s')
 console_handler.setFormatter(log_format)
@@ -15,4 +15,4 @@ file_handler.setFormatter(log_format)
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
 
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
