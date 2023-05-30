@@ -560,39 +560,16 @@ class Hand(object):
             points = score_pegs(self.stack)
         self.award(player, points)
 
-    def new_trick(self) -> None:
-        """"""
+    def trick(self) -> None:
+        """Play turns until all players have said go"""
         self.go = 0
         n = len(self.players)
         while self.go < n:
             # dealer is first in the list
             # but dealer plays last
             self.turn_number += 1
-            player = self.players[self.turn_number % n]
-            self.turn(player) # player takes a turn, which (re)sets the go counter
-    
-    def trick(self) -> None:
-        """
-        Players play cards on the stack until no player can play
-        turn <- trick <- all tricks in hand <- all hands in game
-        """
-        go = 0
-        n = len(self.players)
-        while go < n:
-            player = self.players[self.turn % n]
-            card_to_play = player.play(self.stack)
-            if not card_to_play:
-                go += 1
-                # The last player to say go gets one point
-                if go == len(self.players):
-                    self.award(player, 1)
-            else:
-                go = 0
-                self.stack.append(card_to_play)
-                points = score_pegs(self.stack)
-                if points:
-                    self.award(player, points)
-            self.turn += 1
+            player_index = self.turn_number % n
+            self.turn(player_index) # player takes a turn, which (re)sets the go counter
 
     def tricks(self) -> None:
         """

@@ -556,14 +556,46 @@ class TestCribbageHand(unittest.TestCase):
         expected_strings = ["5S", "JD", "QD", "6D"]
         self.assertEqual(stack_strings, expected_strings)
 
-    @unittest.SkipTest
     def test_trick_2x(self):
         """Second hand between two players is in sequence"""
+        # build two players' hands
+        hand_strings = [
+            ["JD", "6D", "1D", "AS"],
+            ["5S", "QD", "6D", "2S"],
+        ]
+        players = []
+        for hand_string in hand_strings:
+            player = cribbage.Player(hand=[cribbage.card_from_string(s) for s in hand_string])
+            players.append(player)
+        hand = cribbage.Hand(players)
+        # play a trick with both players
+        hand.trick()
+        # reset the stack and play the second trick
+        hand.stack = []
+        hand.trick()
+        # assess the order is what is expected
+        stack_strings = [card.name for card in hand.stack]
+        expected_strings = ["6D", "1D", "2S", "AS"]
+        self.assertEqual(stack_strings, expected_strings)
 
-    @unittest.SkipTest
     def test_tricks(self):
         """Test that all tricks get played out"""
-        pass
+        # build two players' hands
+        hand_strings = [
+            ["JD", "6D", "1D", "AS"],
+            ["5S", "QD", "6D", "2S"],
+        ]
+        players = []
+        for hand_string in hand_strings:
+            player = cribbage.Player(hand=[cribbage.card_from_string(s) for s in hand_string])
+            players.append(player)
+        hand = cribbage.Hand(players)
+        # play out both trick with both players
+        hand.tricks()
+        # assess the order is what is expected
+        stack_strings = [card.name for card in hand.stack]
+        expected_strings = ["6D", "1D", "2S", "AS"]
+        self.assertEqual(stack_strings, expected_strings)
 
 class TestCribbageGame(unittest.TestCase):
 
