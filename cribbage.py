@@ -402,11 +402,45 @@ def pick_sequence(
     return hand, chosen
 
 
+def pick_human(
+    hand: typing.List[Card], seen: typing.List[Card], n: int
+) -> typing.Tuple[typing.List[Card], typing.List[Card]]:
+    """
+    Human chooses cards
+    return hand, crib
+    """
+    chosen = []
+    print(f"You've seen {seen}")
+    print(f"Enter the numbers of {n} cards to throw in the crib:")
+    valid = False
+    while not valid:
+        for index, card in enumerate(hand):
+            print(f"{index}\t{card.name}")
+        selection = input("Your selection(s): ")
+        selections = selection.split()
+        valid = True
+        for i in selections:
+            if int(i) >= len(hand):
+                valid = False
+    for i in selections:
+        chosen.append(hand.pop(int(i)))
+    return hand, chosen
+
+
 def play_sequence(
     possible: typing.List[Card], seen: typing.List[Card], stack: typing.List[Card]
 ) -> Card:
     """Choose next card in sequence, or return an empty list"""
     possible, card = pick_sequence(possible, None, 1)
+    return card[0]
+
+
+def play_human(
+    possible: typing.List[Card], seen: typing.List[Card], stack: typing.List[Card]
+) -> Card:
+    """Human chooses card to play, or return an empty list"""
+    print(f"The stack: {stack}")
+    possible, card = pick_human(possible, seen, 1)
     return card[0]
 
 
@@ -706,8 +740,11 @@ class Game(object):
 
 
 def main():
-    game = Game(n=2)
-    # print(game.players)
+    players = [
+        Player("Me", strategy_hand=pick_human, strategy_pegs=play_human),
+        Player("1")
+    ]
+    game = Game(players=players)
     game.play()
     print(game.results)
 
