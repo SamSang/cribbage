@@ -1,9 +1,13 @@
 """
 Tests for the cribbage module
 """
+import logging
 import unittest
 
 import cribbage
+import logger
+
+logger.logger.setLevel(logging.ERROR)
 
 
 class TestStrategySequence(unittest.TestCase):
@@ -198,9 +202,9 @@ class TestCribbagePegs(unittest.TestCase):
             (["7S", "8H"], 2),
             (["7S", "7D", "7H"], 6),
             (["7S", "4D", "2H"], 0),
-            (["6S", "8H", "7D"], 5),
+            (["6S", "8H", "7D"], 3),
             (["6S", "8H", "7D", "9C"], 4),
-            (["7S", "8H", "6D", "9C"], 6),
+            (["7S", "8H", "6D", "9C"], 4),
             (["7S", "8H", "6D", "JC"], 1),
         ]
         for i in range(len(stacks_strings)):

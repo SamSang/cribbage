@@ -3,6 +3,7 @@ Collection of objects to represent possible cribbage hands
 """
 
 import random
+import sys
 import typing
 from itertools import combinations
 from itertools import permutations
@@ -364,7 +365,6 @@ def score_pegs(stack: typing.List[Card]) -> int:
     # fifteen, pairs, sequence
     points = 0
     checks = [
-        peg_fifteen,
         peg_pairs,
         peg_seq,
     ]
@@ -373,6 +373,7 @@ def score_pegs(stack: typing.List[Card]) -> int:
         for pack in pegs_packs(stack):
             result.append(check(pack))
         points += max(result)
+    points += peg_fifteen(stack)
     points += peg_31(stack)
     return points
 
@@ -402,11 +403,54 @@ def pick_sequence(
     return hand, chosen
 
 
+def pick_human(
+    hand: typing.List[Card], seen: typing.List[Card], n: int
+) -> typing.Tuple[typing.List[Card], typing.List[Card]]:
+    """
+    Human chooses cards
+    return hand, crib
+    """
+    chosen = []
+    print(f"You've seen {seen}")
+    print(f"Enter the numbers of {n} card(s):")
+    valid = False
+    try:
+        while not valid:
+            for index, card in enumerate(hand):
+                print(f"{index}\t{card.name}")
+            selection = input("Your selection(s): ")
+            if selection == "exit":
+                raise KeyboardInterrupt
+            selections = selection.split()
+            selections.sort(reverse=True)
+            valid = True
+            if len(selections) != min(n, len(hand)):
+                valid = False
+            for i in selections:
+                if int(i) >= len(hand):
+                    valid = False
+    except KeyboardInterrupt:
+        print("\nBye!")
+        sys.exit()
+    for i in selections:
+        chosen.append(hand.pop(int(i)))
+    return hand, chosen
+
+
 def play_sequence(
     possible: typing.List[Card], seen: typing.List[Card], stack: typing.List[Card]
 ) -> Card:
     """Choose next card in sequence, or return an empty list"""
     possible, card = pick_sequence(possible, None, 1)
+    return card[0]
+
+
+def play_human(
+    possible: typing.List[Card], seen: typing.List[Card], stack: typing.List[Card]
+) -> Card:
+    """Human chooses card to play, or return an empty list"""
+    print(f"The stack: {stack} totals {sum([card.value for card in stack])}")
+    possible, card = pick_human(possible, seen, 1)
     return card[0]
 
 
@@ -554,6 +598,10 @@ class Hand(object):
         i = random.randint(5, len(self.deck) - (1 + 5))
         self.the_cut = self.deck.pop(i)
         self.show(self.the_cut)
+        for player in self.players:
+            if player.strategy_hand.__name__ == "pick_human":
+                logger.info(f"The cut is {self.the_cut}")
+
         if self.the_cut.rank == "Jack":
             self.award(self.players[0], 2)  # first player is dealer and gets the cut
 
@@ -574,6 +622,8 @@ class Hand(object):
         # each player tosses card(s) to the crib then
         # make a shallow copy of the hand to count later
         for player in self.players:
+            if player.strategy_hand.__name__ == "pick_human":
+                logger.info(f"Player {self.players[0].name} gets the crib")
             the_crib += player.toss()
             player.count_hand = list(player.hand)
 
@@ -591,10 +641,10 @@ class Hand(object):
         """
         if points < 1:
             return
-        logger.debug(f"Award player {player.name} {points} points")
+        logger.info(f"Award player {player.name} {points} points")
         player.score += points
         if player.score >= self.win:
-            logger.debug(f"Player {player.name} wins!")
+            logger.info(f"Player {player.name} wins!")
             raise WinCondition(self.players)
 
     def turn(self, i: int) -> None:
@@ -602,6 +652,10 @@ class Hand(object):
         Player at index i adds a card to the stack
         """
         player = self.players[i]
+        if player.strategy_pegs.__name__ == "play_human":
+            logger.info(
+                f"hand {self.seq}\nscores: {[(player.name, player.score) for player in self.players]}"
+            )
         points = 0
         card_to_play = player.play(self.stack)
         if not card_to_play:
@@ -705,19 +759,12 @@ class Game(object):
             }
 
 
-def main1():
-    players = [Player("1"), Player("2")]
-    hand = Hand(players)
-    hand.deal()
-    hand.collect()
-    hand.cut()
-    hand.tricks()
-    print(hand.players)
-
-
 def main():
-    game = Game(n=2)
-    # print(game.players)
+    players = [
+        Player("Me", strategy_hand=pick_human, strategy_pegs=play_human),
+        Player("1"),
+    ]
+    game = Game(players=players)
     game.play()
     print(game.results)
 
