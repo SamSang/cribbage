@@ -5,6 +5,7 @@ Collection of objects to represent possible cribbage hands
 import random
 import sys
 import typing
+import uuid
 from itertools import combinations
 from itertools import permutations
 
@@ -704,7 +705,7 @@ class Hand(object):
 class Game(object):
     def __init__(
         self,
-        name: str = "",
+        name: str = str(uuid.uuid4()),
         n: int = 0,
         players: typing.List[Player] = [],
         win: int = 121,
@@ -718,6 +719,8 @@ class Game(object):
         if players:
             self.players = players
         self.n = len(self.players)
+        if self.n == 0:
+            raise ValueError("List `players` cannot be empty.")
 
         self.dealer_index: int = 0
         self.deck: typing.List[Card] = []
