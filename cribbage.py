@@ -413,6 +413,35 @@ def pick_sequence(
     return hand, chosen
 
 
+def validate_index(indices: list, values: list) -> bool:
+    """Determine if all values on list are valid indices of values"""
+    valid = True
+    try:
+        length = len(values)
+        for index in indices:
+            if index == "exit":
+                raise KeyboardInterrupt("User typed 'exit'")
+            if int(index) not in range(length):
+                valid = False
+    except ValueError:
+        valid = False
+    return valid
+
+
+def convert_indices(strings: typing.List[str]) -> typing.List[int]:
+    """Convert a list of str to a list of int"""
+    output = []
+    for s in strings:
+        output.append(int(s))
+    return output
+
+
+def split_input(value: str) -> typing.List[str]:
+    """Convert arbitrary strings to lists of str"""
+    values = value.split()  # default splits over whitespace
+    return values
+
+
 @human
 def pick_human(
     hand: typing.List[Card], seen: typing.List[Card], n: int
@@ -430,19 +459,12 @@ def pick_human(
             for index, card in enumerate(hand):
                 print(f"{index}\t{card.name}")
             selection = input("Your selection(s): ")
-            if selection == "exit":
-                raise KeyboardInterrupt
-            selections = selection.split()
-            selections.sort(reverse=True)
-            valid = True
-            if len(selections) != min(n, len(hand)):
-                valid = False
-            for i in selections:
-                if int(i) >= len(hand):
-                    valid = False
+            selections = split_input(selection)
+            valid = validate_index(selections, hand)
     except KeyboardInterrupt:
         print("\nBye!")
         sys.exit()
+    selections.sort(reverse=True)
     for i in selections:
         chosen.append(hand.pop(int(i)))
     return hand, chosen
@@ -507,6 +529,7 @@ class Player(object):
         self._seen = set()
         self.strategy_hand = strategy_hand
         self.strategy_pegs = strategy_pegs
+        self.is_human = hasattr(self.strategy_hand, "is_human") or hasattr(self.strategy_pegs, "is_human")
 
     def __repr__(self):
         return str(

@@ -8,6 +8,54 @@ import cribbage
 import logger
 
 logger.logger.setLevel(logging.ERROR)
+logger.awarder.setLevel(logging.ERROR)
+logger.hand.setLevel(logging.ERROR)
+
+
+class TestStrategyHuman(unittest.TestCase):
+    """Human strategy elements work as intended"""
+
+    def setUp(self) -> None:
+        return super().setUp()
+
+    def test_validate_index(self):
+        """indecies are available to select"""
+        examples = [
+            (["1", "2"], ["a", "b", "c"], True),
+            ([0, 2], ["a", "b", "c"], True),
+            ([1, 3], ["a", "b", "c"], False),
+            ([-1], ["a", "b", "c"], False),
+            (["x"], ["a", "b", "c"], False),
+        ]
+        for indices, values, result in examples:
+            with self.subTest(indices=indices, values=values, result=result):
+                self.assertEqual(cribbage.validate_index(indices, values), result)
+
+    def test_exit(self):
+        """
+        type 'exit' raises KeyboardInterrupt
+        even when index is invalid
+        """
+        with self.assertRaises(KeyboardInterrupt):
+            cribbage.validate_index([0, "exit"], [])
+
+    def test_convert_index(self):
+        """convert list of strings to list of integers"""
+        values = ["1", "2", "3", "4", "5"]
+        result = [1, 2, 3, 4, 5]
+        self.assertEqual(cribbage.convert_indices(values), result)
+
+    def test_input_split(self):
+        """convert arbitrary sequences to lists of strings"""
+        examples = [
+            ("1 2", ["1", "2"]),
+            ("1  2", ["1", "2"]),
+            # ("1,2", ["1", "2"]),
+            # ("1;2", ["1", "2"]),
+        ]
+        for value, result in examples:
+            with self.subTest(value=value, result=result):
+                self.assertEqual(cribbage.split_input(value), result)
 
 
 class TestStrategySequence(unittest.TestCase):
@@ -216,6 +264,10 @@ class TestCribbagePegs(unittest.TestCase):
 class TestCribbagePlayer(unittest.TestCase):
     """Test suite for Player class"""
 
+    def setUp(self) -> None:
+        self.player = cribbage.Player()
+        return super().setUp()
+
     def test_attrs(self):
         """Has all given attributes"""
         player = cribbage.Player()
@@ -228,6 +280,7 @@ class TestCribbagePlayer(unittest.TestCase):
             "strategy_hand": "function",
             "strategy_pegs": "function",
             "count_hand": list,
+            "is_human": bool,
         }
         for key in attributes:
             val = getattr(player, key)
@@ -308,6 +361,15 @@ class TestCribbagePlayer(unittest.TestCase):
         self.assertEqual(len(stack), 1)
         self.assertEqual(len(player.hand), hand_size - 1)
 
+    def test_not_human(self):
+        self.assertFalse(self.player.is_human)
+
+    def test_human(self):
+        player = cribbage.Player(
+            strategy_hand=cribbage.pick_human, strategy_pegs=cribbage.play_human
+        )
+        self.assertTrue(player.is_human)
+
 
 class TestCribbageHand(unittest.TestCase):
     """Test suite for Hand class"""
@@ -330,6 +392,10 @@ class TestCribbageHand(unittest.TestCase):
             "crib": list,
             # "the_cut": None, # not instantiated on init
             "stack": list,
+            "stack_total": int,
+            "scores": list,
+            "turn_number": int,
+            "game_name": str,
         }
         for key in attributes:
             with self.subTest(key=key):
@@ -431,14 +497,14 @@ class TestCribbageHand(unittest.TestCase):
 
     def test_award(self):
         player = self.hand.players[0]
-        self.hand.award(player, 1)
+        self.hand.award(player, 1, "testing")
         self.assertEqual(self.hand.players[0].score, 1)
 
     def test_award_win(self):
         """Default win score raises win exception"""
         player = self.hand.players[0]
         with self.assertRaises(cribbage.WinCondition):
-            self.hand.award(player, 121)
+            self.hand.award(player, 121, "testing")
 
     def test_turn(self):
         """Player puts a card on the stack"""
@@ -525,7 +591,8 @@ class TestCribbageHand(unittest.TestCase):
         local_hand.count()
 
         # validate the resulting scores
-        scores = [6, 9 + 12]
+        # player at index = 0 gets the crib
+        scores = [6 + 12, 9]
         for i in range(len(local_hand.players)):
             with self.subTest(i=i):
                 self.assertEqual(local_hand.players[i].score, scores[i])
