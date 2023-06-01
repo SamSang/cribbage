@@ -728,7 +728,8 @@ class TestCribbageHand(unittest.TestCase):
 
 class TestCribbageGame(unittest.TestCase):
     def setUp(self) -> None:
-        self.game = cribbage.Game(n=4)
+        self.n = 4
+        self.game = cribbage.Game(n=self.n)
         return super().setUp()
 
     def test_attrs(self):
@@ -745,6 +746,25 @@ class TestCribbageGame(unittest.TestCase):
         for key in attributes:
             val = getattr(self.game, key)
             self.assertIsInstance(val, attributes[key])
+
+    def test_no_players(self):
+        configs = [
+            {"n": 0},
+            {"players": []},
+        ]
+        for params in configs:
+            with self.subTest(params=params):
+                with self.assertRaises(ValueError):
+                    game = cribbage.Game(**params)
+
+    def test_n_players(self):
+        self.assertEqual(self.game.n, self.n)
+        players = [
+            cribbage.Player("1"),
+            cribbage.Player("2"),
+        ]
+        game = cribbage.Game(players=players)
+        self.assertEqual(game.n, len(players))
 
     def test_shuffle(self):
         """Deck is replentished"""
