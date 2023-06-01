@@ -9,7 +9,7 @@ import uuid
 from itertools import combinations
 from itertools import permutations
 
-from logger import logger
+import logger
 
 faces = {
     "10": {
@@ -193,7 +193,7 @@ def score_fifteen(cards: typing.List[Card]) -> int:
     for count_cards in range(len(cards) + 1):
         for subset in combinations(cards, count_cards):
             if add_cards(subset) == 15:
-                logger.debug(f"15 two! {subset}")
+                logger.logger.debug(f"15 two! {subset}")
                 points += 2
     return points
 
@@ -205,7 +205,7 @@ def score_pair(cards: typing.List[Card]) -> int:
     points = 0
     for subset in combinations(cards, 2):
         if len(subset) == 2 and subset[0].rank == subset[1].rank:
-            logger.debug(f"A pair in there! {subset}")
+            logger.logger.debug(f"A pair in there! {subset}")
             points += 2
     return points
 
@@ -245,7 +245,7 @@ def score_seq(cards: typing.List[Card]) -> int:
     unique_sequences_set = set(frozenset(s) for s in unique_sequences)
     for unique_sequence in unique_sequences_set:
         points += len(unique_sequence)
-        logger.debug(f"{list(unique_sequence)} for {points} points")
+        logger.logger.debug(f"{list(unique_sequence)} for {points} points")
     return points
 
 
@@ -256,12 +256,12 @@ def score_flush(hand: typing.List[Card], cut: Card) -> int:
     for i in range(len(hand)):
         suits.append(hand[i].suit)
     if len(list(set(suits))) == 1:
-        logger.debug("Flush!")
+        logger.logger.debug("Flush!")
         points += len(hand)
         # check if we get an extra point for the cut matching the flush
         if cut:
             if cut.suit == suits[0]:
-                logger.debug("(including the cut)")
+                logger.logger.debug("(including the cut)")
                 points += 1
     return points
 
@@ -271,7 +271,7 @@ def score_cut(hand: typing.List[Card], cut: Card) -> int:
     if cut:
         for card in hand:
             if card.rank == "Jack" and card.suit == cut.suit:
-                logger.debug("Jack in the suit!")
+                logger.logger.debug("Jack in the suit!")
                 return 1
     return 0
 
@@ -394,6 +394,15 @@ for the pegs strategy
 """
 
 
+def human(f):
+    """
+    Set a flag to determine if a strategy is human or not
+    If the flag exists on a function, assume the player is human
+    """
+    f.is_human = True
+    return f
+
+
 def pick_sequence(
     hand: typing.List[Card], seen: typing.List[Card], n: int
 ) -> typing.Tuple[typing.List[Card], typing.List[Card]]:
@@ -404,6 +413,7 @@ def pick_sequence(
     return hand, chosen
 
 
+@human
 def pick_human(
     hand: typing.List[Card], seen: typing.List[Card], n: int
 ) -> typing.Tuple[typing.List[Card], typing.List[Card]]:
@@ -446,6 +456,7 @@ def play_sequence(
     return card[0]
 
 
+@human
 def play_human(
     possible: typing.List[Card], seen: typing.List[Card], stack: typing.List[Card]
 ) -> Card:
@@ -570,12 +581,18 @@ class Hand(object):
     """
 
     def __init__(
-        self, players: typing.List[Player], deck: typing.List[Card] = [], seq=0, win=121
+        self,
+        players: typing.List[Player],
+        deck: typing.List[Card] = [],
+        game_name="",
+        seq=0,
+        win=121,
     ) -> None:
         self.players = players
         self.deck = deck
         if not deck:
             self.deck = build_deck()
+        self.game_name = game_name
         self.seq = seq
         self.win = win
         self.turn_number = 0
@@ -583,6 +600,8 @@ class Hand(object):
         self.the_cut: Card = None
         self.crib: typing.List[Card] = []
         self.stack: typing.List[Card] = []
+        self.scores = [f"{player.name} - {player.score}" for player in self.players]
+        self.stack_total = sum([card.value for card in self.stack])
 
     def show(self, card: Card) -> None:
         """
@@ -599,12 +618,11 @@ class Hand(object):
         i = random.randint(5, len(self.deck) - (1 + 5))
         self.the_cut = self.deck.pop(i)
         self.show(self.the_cut)
-        for player in self.players:
-            if player.strategy_hand.__name__ == "pick_human":
-                logger.info(f"The cut is {self.the_cut}")
 
         if self.the_cut.rank == "Jack":
-            self.award(self.players[0], 2)  # first player is dealer and gets the cut
+            self.award(
+                self.players[0], 2, "Jack in the suit"
+            )  # first player is dealer and gets the cut
 
     def deal(self) -> None:
         """
@@ -624,7 +642,8 @@ class Hand(object):
         # make a shallow copy of the hand to count later
         for player in self.players:
             if player.strategy_hand.__name__ == "pick_human":
-                logger.info(f"Player {self.players[0].name} gets the crib")
+                logger.logger.info(f"Player {self.players[0].name} gets the crib")
+                logger.hand.info("standings", extra=self.__dict__)
             the_crib += player.toss()
             player.count_hand = list(player.hand)
 
@@ -636,16 +655,19 @@ class Hand(object):
 
         self.crib = the_crib
 
-    def award(self, player: Player, points: int) -> None:
+    def award(self, player: Player, points: int, reason: str) -> None:
         """
         Award a player points and check if they've won
         """
         if points < 1:
             return
-        logger.info(f"Award player {player.name} {points} points")
+        logger.awarder.info(
+            f"{player.name} | {points} | {reason.format(**self.__dict__)}",
+            extra=self.__dict__,
+        )
         player.score += points
         if player.score >= self.win:
-            logger.info(f"Player {player.name} wins!")
+            logger.logger.info(f"Player {player.name} wins!")
             raise WinCondition(self.players)
 
     def turn(self, i: int) -> None:
@@ -654,9 +676,7 @@ class Hand(object):
         """
         player = self.players[i]
         if player.strategy_pegs.__name__ == "play_human":
-            logger.info(
-                f"hand {self.seq}\nscores: {[(player.name, player.score) for player in self.players]}"
-            )
+            logger.hand.info("your move", extra=self.__dict__)
         points = 0
         card_to_play = player.play(self.stack)
         if not card_to_play:
@@ -668,7 +688,7 @@ class Hand(object):
             self.go = 0
             self.stack.append(card_to_play)
             points = score_pegs(self.stack)
-        self.award(player, points)
+        self.award(player, points, "pegs: {stack}")
 
     def trick(self) -> None:
         """Play turns until all players have said go"""
@@ -697,9 +717,17 @@ class Hand(object):
         award those points
         """
         for player in self.players:
-            self.award(player, score(player.count_hand, self.the_cut))
+            self.award(
+                player,
+                score(player.count_hand, self.the_cut),
+                f"Player hand: {player.count_hand} plus {self.the_cut}",
+            )
 
-        self.award(self.players[len(self.players) - 1], score(self.crib, self.the_cut))
+        self.award(
+            self.players[0],
+            score(self.crib, self.the_cut),
+            f"Crib: {self.crib} plus {self.the_cut}",
+        )
 
 
 class Game(object):
@@ -749,7 +777,13 @@ class Game(object):
                 i += 1
                 self.advance()
                 self.shuffle()
-                hand = Hand(players=self.players, deck=self.deck, seq=i, win=self.win)
+                hand = Hand(
+                    players=self.players,
+                    deck=self.deck,
+                    seq=i,
+                    win=self.win,
+                    game_name=self.name,
+                )
                 hand.deal()
                 hand.collect()
                 hand.cut()
