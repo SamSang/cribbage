@@ -74,6 +74,18 @@ class TestStrategyHuman(unittest.TestCase):
         self.assertEqual([card.name for card in player_hand], restult_hand_strings)
 
 
+    def test_input_exit(self):
+        """generic input raises end of game error"""
+
+        def static_input(prommpt: str) -> None:
+            return "exit"
+
+        hand_strings = ["KD", "QD", "1D", "9D", "AC", "3D"]
+        player_hand = [cribbage.card_from_string(s) for s in hand_strings]
+        with self.assertRaises(cribbage.WinCondition):
+            hand, crib = cribbage.pick_input(static_input)(player_hand, [], 2)
+
+
 class TestStrategySequence(unittest.TestCase):
     """Sequence Strategy works as intended"""
 
@@ -337,13 +349,15 @@ class TestCribbagePlayer(unittest.TestCase):
     def test_reshuffle(self):
         deck = cribbage.build_deck()
         seen = cribbage.draw_hand(deck, 1)
+        hand = cribbage.draw_hand(deck, 1)
 
-        player = cribbage.Player()
+        player = cribbage.Player(hand=hand)
         player.see(seen[0])
 
         player.reshuffle()
-        self.assertEqual(player.hand, [])
-        self.assertEqual(len(player.seen), 0)
+        self.assertEqual(player.hand, hand)
+        self.assertEqual(len(player.seen), 1)
+        self.assertEqual(player.seen[0].name, hand[0].name)
 
     def test_toss(self):
         # hand_size + (crib_size // player_count) = 4 + (4 // [2, 3, 4])
