@@ -2,6 +2,7 @@
 Collection of objects to represent possible cribbage hands
 """
 
+import functools
 import random
 import sys
 import typing
@@ -442,6 +443,42 @@ def split_input(value: str) -> typing.List[str]:
     return values
 
 
+def pick_input(func):
+    """
+    Use func to select card(s)
+    return hand, crib
+    """
+
+    @functools.wraps(func)
+    def wrapped(
+        hand: typing.List[Card], seen: typing.List[Card], n: int
+    ) -> typing.Tuple[typing.List[Card], typing.List[Card]]:
+        """
+        Human chooses cards
+        return hand, crib
+        """
+        chosen = []
+        print(f"You've seen {seen}")
+        print(f"Enter the numbers of {n} card(s):")
+        valid = False
+        try:
+            while not valid:
+                for index, card in enumerate(hand):
+                    print(f"{index}\t{card.name}")
+                selection = func("Your selection(s): ")
+                selections = split_input(selection)
+                valid = validate_index(selections, hand)
+        except KeyboardInterrupt:
+            print("\nBye!")
+            raise WinCondition(f"Human ended the game.")
+        selections.sort(reverse=True)
+        for i in selections:
+            chosen.append(hand.pop(int(i)))
+        return hand, chosen
+
+    return wrapped
+
+
 @human
 def pick_human(
     hand: typing.List[Card], seen: typing.List[Card], n: int
@@ -450,24 +487,7 @@ def pick_human(
     Human chooses cards
     return hand, crib
     """
-    chosen = []
-    print(f"You've seen {seen}")
-    print(f"Enter the numbers of {n} card(s):")
-    valid = False
-    try:
-        while not valid:
-            for index, card in enumerate(hand):
-                print(f"{index}\t{card.name}")
-            selection = input("Your selection(s): ")
-            selections = split_input(selection)
-            valid = validate_index(selections, hand)
-    except KeyboardInterrupt:
-        print("\nBye!")
-        sys.exit()
-    selections.sort(reverse=True)
-    for i in selections:
-        chosen.append(hand.pop(int(i)))
-    return hand, chosen
+    return pick_input(input)(hand, seen, n)
 
 
 def play_sequence(
@@ -529,7 +549,9 @@ class Player(object):
         self._seen = set()
         self.strategy_hand = strategy_hand
         self.strategy_pegs = strategy_pegs
-        self.is_human = hasattr(self.strategy_hand, "is_human") or hasattr(self.strategy_pegs, "is_human")
+        self.is_human = hasattr(self.strategy_hand, "is_human") or hasattr(
+            self.strategy_pegs, "is_human"
+        )
 
     def __repr__(self):
         return str(

@@ -44,6 +44,7 @@ class TestStrategyHuman(unittest.TestCase):
         values = ["1", "2", "3", "4", "5"]
         result = [1, 2, 3, 4, 5]
         self.assertEqual(cribbage.convert_indices(values), result)
+        self.assertEqual(cribbage.convert_indices(result), result)
 
     def test_input_split(self):
         """convert arbitrary sequences to lists of strings"""
@@ -56,6 +57,21 @@ class TestStrategyHuman(unittest.TestCase):
         for value, result in examples:
             with self.subTest(value=value, result=result):
                 self.assertEqual(cribbage.split_input(value), result)
+
+    def test_input(self):
+        """wrapper around picking cards"""
+
+        def static_input(prommpt: str) -> None:
+            return "2 5"
+
+        hand_strings = ["KD", "QD", "1D", "9D", "AC", "3D"]
+        player_hand = [cribbage.card_from_string(s) for s in hand_strings]
+        hand, crib = cribbage.pick_input(static_input)(player_hand, [], 2)
+        result_crib_strings = ["1D", "3D"]
+        restult_hand_strings = ["KD", "QD", "9D", "AC"]
+        self.assertCountEqual([card.name for card in hand], restult_hand_strings)
+        self.assertCountEqual([card.name for card in crib], result_crib_strings)
+        self.assertEqual([card.name for card in player_hand], restult_hand_strings)
 
 
 class TestStrategySequence(unittest.TestCase):
