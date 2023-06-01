@@ -15,5 +15,5 @@ python_version = "3.11"
 python_full_version = "3.11.2"
 
 [scripts]
-coverage = "zsh -c 'python -m coverage run tests.py && coverage-badge -fo coverage.svg'"
+coverage = "zsh -c 'python -m coverage run --include=cribbage.py tests.py && coverage-badge -fo coverage.svg'"
 format = "zsh -c 'black *.py'"
