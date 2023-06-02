@@ -701,8 +701,8 @@ class Hand(object):
 
         if self.the_cut.rank == "Jack":
             self.award(
-                self.players[0], 2, "Jack in the suit"
-            )  # first player is dealer and gets the cut
+                self.players[len(self.players) - 1], 2, "Jack in the suit"
+            )  # last player is dealer and gets the cut
 
     def deal(self) -> None:
         """
@@ -722,7 +722,8 @@ class Hand(object):
         # make a shallow copy of the hand to count later
         for player in self.players:
             logger.human.log(
-                player.logging_level, f"Player {self.players[0].name} gets the crib"
+                player.logging_level,
+                f"Player {self.players[len(self.players) - 1].name} gets the crib",
             )
             logger.hand.log(player.logging_level, "standings", extra=self.as_dict())
             the_crib += player.toss()
@@ -806,8 +807,9 @@ class Hand(object):
                 f"Player hand: {player.count_hand} plus {self.the_cut}",
             )
 
+        #  Last player to count gets the crib
         self.award(
-            self.players[0],
+            player,
             score(self.crib, self.the_cut),
             f"Crib: {self.crib} plus {self.the_cut}",
         )

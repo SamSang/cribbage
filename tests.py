@@ -464,8 +464,8 @@ class TestCribbageHand(unittest.TestCase):
         self.assertEqual(len(self.hand.deck), n - 1)
         for player in self.hand.players:
             self.assertIn(self.hand.the_cut, player.seen)
-        # two points awarded
-        self.assertEqual(self.hand.players[0].score, 2)
+        # two points awarded to last player
+        self.assertEqual(self.hand.players[len(self.hand.players) - 1].score, 2)
 
     def test_count(self):
         """
@@ -624,8 +624,8 @@ class TestCribbageHand(unittest.TestCase):
         local_hand.count()
 
         # validate the resulting scores
-        # player at index = 0 gets the crib
-        scores = [6 + 12, 9]
+        # last player to count gets the crib
+        scores = [6, 9 + 12]
         for i in range(len(local_hand.players)):
             with self.subTest(i=i):
                 self.assertEqual(local_hand.players[i].score, scores[i])
