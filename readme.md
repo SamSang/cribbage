@@ -1,4 +1,5 @@
 # Cribbage!
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ![](coverage.svg)
 
 I love cribbage. But no one will play with me, so I'm writing a silly vanity project to build lots of classes.

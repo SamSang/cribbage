@@ -4,3 +4,4 @@ TODO.md
 scratch.py
 Pipfile.lock
 .coverage
+htmlcov/
