@@ -779,13 +779,11 @@ class Hand(object):
         self.go = 0
         n = len(self.players)
         while self.go < n:
-            # dealer is first in the list
-            # but dealer plays last
-            self.turn_number += 1
             player_index = self.turn_number % n
             self.turn(
                 player_index
             )  # player takes a turn, which (re)sets the go counter
+            self.turn_number += 1
 
     def tricks(self) -> None:
         """
