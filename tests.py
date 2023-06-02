@@ -66,13 +66,14 @@ class TestStrategyHuman(unittest.TestCase):
 
         hand_strings = ["KD", "QD", "1D", "9D", "AC", "3D"]
         player_hand = [cribbage.card_from_string(s) for s in hand_strings]
-        hand, crib = cribbage.pick_input(static_input)(player_hand, [], 2)
+        hand, crib = cribbage.pick_input(static_input, logger.default_level)(
+            player_hand, [], 2
+        )
         result_crib_strings = ["1D", "3D"]
         restult_hand_strings = ["KD", "QD", "9D", "AC"]
         self.assertCountEqual([card.name for card in hand], restult_hand_strings)
         self.assertCountEqual([card.name for card in crib], result_crib_strings)
         self.assertEqual([card.name for card in player_hand], restult_hand_strings)
-
 
     def test_input_exit(self):
         """generic input raises end of game error"""
@@ -83,7 +84,9 @@ class TestStrategyHuman(unittest.TestCase):
         hand_strings = ["KD", "QD", "1D", "9D", "AC", "3D"]
         player_hand = [cribbage.card_from_string(s) for s in hand_strings]
         with self.assertRaises(cribbage.WinCondition):
-            hand, crib = cribbage.pick_input(static_input)(player_hand, [], 2)
+            hand, crib = cribbage.pick_input(static_input, logger.default_level)(
+                player_hand, [], 2
+            )
 
 
 class TestStrategySequence(unittest.TestCase):
@@ -308,7 +311,7 @@ class TestCribbagePlayer(unittest.TestCase):
             "strategy_hand": "function",
             "strategy_pegs": "function",
             "count_hand": list,
-            "is_human": bool,
+            "logging_level": int,
         }
         for key in attributes:
             val = getattr(player, key)
@@ -391,14 +394,14 @@ class TestCribbagePlayer(unittest.TestCase):
         self.assertEqual(len(stack), 1)
         self.assertEqual(len(player.hand), hand_size - 1)
 
-    def test_not_human(self):
-        self.assertFalse(self.player.is_human)
+    def test_logging_level(self):
+        self.assertEqual(self.player.logging_level, logger.default_level)
 
     def test_human(self):
         player = cribbage.Player(
             strategy_hand=cribbage.pick_human, strategy_pegs=cribbage.play_human
         )
-        self.assertTrue(player.is_human)
+        self.assertEqual(player.logging_level, logger.console_level)
 
 
 class TestCribbageHand(unittest.TestCase):

@@ -1,56 +1,62 @@
 import logging
 
-log_file_path = "cribbage.log"
+default_level = logging.INFO
 
-logger = logging.getLogger("cribbage")
+console_level = logging.INFO + 1
+
+
+def get_logger(
+    name: str, log_format: str, file_path: str = "cribbage.log"
+) -> logging.Logger:
+    """
+    return a logger
+    configured with defaults for this project
+
+    Only log to stream when the console level gets set
+    """
+    logger = logging.getLogger(name)
+
+    log_formatter = logging.Formatter(log_format)
+
+    file_handler = logging.FileHandler(file_path)
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(log_formatter)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(console_level)
+    console_handler.setFormatter(log_formatter)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+
+    logger.setLevel(logging.INFO)
+
+    return logger
+
+
+hand_format = "%(name)s | %(message)s | turn %(turn_number)s | stack %(stack)s | total %(stack_total)s | cut %(the_cut)s | %(scores)s |"
+
+hand = get_logger("hand", hand_format)
+
+
+award_format = "%(name)s | %(message)s | turn %(turn_number)s"
+
+awarder = get_logger("award", hand_format)
+
+
+logger_format = "%(name)s | %(message)s"
+
+logger = get_logger("cribbage", logger_format)
+
+
+human = logging.getLogger("human")
+
+log_formatter = logging.Formatter(logger_format)
 
 console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
+console_handler.setLevel(console_level)
+console_handler.setFormatter(log_formatter)
 
-file_handler = logging.FileHandler(log_file_path)
-file_handler.setLevel(logging.INFO)
+human.addHandler(console_handler)
 
-log_format = logging.Formatter("%(name)s - %(message)s")
-console_handler.setFormatter(log_format)
-file_handler.setFormatter(log_format)
-
-logger.addHandler(console_handler)
-logger.addHandler(file_handler)
-
-logger.setLevel(logging.INFO)
-
-awarder = logging.getLogger("award")
-
-# award_format = logging.Formatter("%(name)s | %(message)s | %(turn_number)s")
-award_format = logging.Formatter("%(name)s | %(message)s | turn %(turn_number)s")
-
-awarder_console_handler = logging.StreamHandler()
-awarder_console_handler.setLevel(logging.INFO)
-awarder_console_handler.setFormatter(award_format)
-awarder.addHandler(awarder_console_handler)
-
-awarder_file_handler = logging.FileHandler(log_file_path)
-awarder_file_handler.setLevel(logging.INFO)
-awarder_file_handler.setFormatter(award_format)
-awarder.addHandler(awarder_file_handler)
-
-awarder.setLevel(logging.INFO)
-
-
-hand = logging.getLogger("hand")
-
-hand_format = logging.Formatter(
-    "%(name)s | %(message)s | turn %(turn_number)s | stack %(stack)s | total %(stack_total)s | cut %(the_cut)s | %(scores)s |"
-)
-
-hand_console_handler = logging.StreamHandler()
-hand_console_handler.setLevel(logging.INFO)
-hand_console_handler.setFormatter(hand_format)
-hand.addHandler(hand_console_handler)
-
-hand_file_handler = logging.FileHandler(log_file_path)
-hand_file_handler.setLevel(logging.INFO)
-hand_file_handler.setFormatter(hand_format)
-hand.addHandler(hand_file_handler)
-
-hand.setLevel(logging.INFO)
+human.setLevel(console_level)

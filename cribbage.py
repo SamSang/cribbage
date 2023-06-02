@@ -4,7 +4,6 @@ Collection of objects to represent possible cribbage hands
 
 import functools
 import random
-import sys
 import typing
 import uuid
 from itertools import combinations
@@ -443,7 +442,7 @@ def split_input(value: str) -> typing.List[str]:
     return values
 
 
-def pick_input(func):
+def pick_input(func, level=logger.console_level):
     """
     Use func to select card(s)
     return hand, crib
@@ -458,18 +457,18 @@ def pick_input(func):
         return hand, crib
         """
         chosen = []
-        print(f"You've seen {seen}")
-        print(f"Enter the numbers of {n} card(s):")
+        logger.human.log(level, f"You've seen {seen}")
+        logger.human.log(level, f"Enter the numbers of {n} card(s):")
         valid = False
         try:
             while not valid:
                 for index, card in enumerate(hand):
-                    print(f"{index}\t{card.name}")
+                    logger.human.log(level, f"{index}\t{card.name}")
                 selection = func("Your selection(s): ")
                 selections = split_input(selection)
                 valid = validate_index(selections, hand)
         except KeyboardInterrupt:
-            print("\nBye!")
+            logger.human.log(level, "Bye!")
             raise WinCondition(f"Human ended the game.")
         selections.sort(reverse=True)
         for i in selections:
@@ -503,7 +502,10 @@ def play_human(
     possible: typing.List[Card], seen: typing.List[Card], stack: typing.List[Card]
 ) -> Card:
     """Human chooses card to play, or return an empty list"""
-    print(f"The stack: {stack} totals {sum([card.value for card in stack])}")
+    logger.human.log(
+        logger.console_level,
+        f"The stack: {stack} totals {sum([card.value for card in stack])}",
+    )
     possible, card = pick_human(possible, seen, 1)
     return card[0]
 
@@ -537,6 +539,7 @@ class Player(object):
         hand: typing.List[Card] = None,
         strategy_hand=pick_sequence,
         strategy_pegs=play_sequence,
+        logging_level: int = None,
     ) -> None:
         self.name = name
         self.score = 0
@@ -549,9 +552,14 @@ class Player(object):
         self._seen = set()
         self.strategy_hand = strategy_hand
         self.strategy_pegs = strategy_pegs
-        self.is_human = hasattr(self.strategy_hand, "is_human") or hasattr(
+
+        self.logging_level = logger.default_level
+        if hasattr(self.strategy_hand, "is_human") or hasattr(
             self.strategy_pegs, "is_human"
-        )
+        ):
+            self.logging_level = logger.console_level
+        if logging_level:
+            self.logging_level = logging_level
 
     def __repr__(self):
         return str(
@@ -632,6 +640,7 @@ class Hand(object):
         game_name="",
         seq=0,
         win=121,
+        verbose=False,
     ) -> None:
         self.players = players
         self.deck = deck
@@ -645,8 +654,34 @@ class Hand(object):
         self.the_cut: Card = None
         self.crib: typing.List[Card] = []
         self.stack: typing.List[Card] = []
-        self.scores = [f"{player.name} - {player.score}" for player in self.players]
-        self.stack_total = sum([card.value for card in self.stack])
+        self._level = logger.default_level
+        max_level = max([player.logging_level for player in self.players])
+        if max_level:
+            self._level = max_level
+        if verbose:
+            self._level = logger.console_level
+
+    def as_dict(self):
+        return {
+            "players": self.players,
+            "game_name": self.game_name,
+            "seq": self.seq,
+            "win": self.win,
+            "turn_number": self.turn_number,
+            "go": self.go,
+            "the_cut": self.the_cut,
+            "stack": self.stack,
+            "stack_total": self.stack_total,
+            "scores": self.scores,
+        }
+
+    @property
+    def stack_total(self):
+        return sum([card.value for card in self.stack])
+
+    @property
+    def scores(self):
+        return [f"{player.name} - {player.score}" for player in self.players]
 
     def show(self, card: Card) -> None:
         """
@@ -686,9 +721,10 @@ class Hand(object):
         # each player tosses card(s) to the crib then
         # make a shallow copy of the hand to count later
         for player in self.players:
-            if player.strategy_hand.__name__ == "pick_human":
-                logger.logger.info(f"Player {self.players[0].name} gets the crib")
-                logger.hand.info("standings", extra=self.__dict__)
+            logger.human.log(
+                player.logging_level, f"Player {self.players[0].name} gets the crib"
+            )
+            logger.hand.log(player.logging_level, "standings", extra=self.as_dict())
             the_crib += player.toss()
             player.count_hand = list(player.hand)
 
@@ -706,13 +742,14 @@ class Hand(object):
         """
         if points < 1:
             return
-        logger.awarder.info(
-            f"{player.name} | {points} | {reason.format(**self.__dict__)}",
-            extra=self.__dict__,
+        logger.awarder.log(
+            self._level,
+            f"{player.name} | {points} | {reason.format(**self.as_dict())}",
+            extra=self.as_dict(),
         )
         player.score += points
         if player.score >= self.win:
-            logger.logger.info(f"Player {player.name} wins!")
+            logger.logger.log(self._level, f"Player {player.name} wins!")
             raise WinCondition(self.players)
 
     def turn(self, i: int) -> None:
@@ -720,8 +757,9 @@ class Hand(object):
         Player at index i adds a card to the stack
         """
         player = self.players[i]
-        if player.strategy_pegs.__name__ == "play_human":
-            logger.hand.info("your move", extra=self.__dict__)
+        logger.hand.log(
+            player.logging_level, f"{player.name} move", extra=self.as_dict()
+        )
         points = 0
         card_to_play = player.play(self.stack)
         if not card_to_play:
